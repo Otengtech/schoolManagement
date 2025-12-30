@@ -6,7 +6,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 // auth pages
 import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 
@@ -14,7 +13,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import Student from "./pages/Student";
 import Parent from "./pages/Parent";
 import Teacher from "./pages/Teacher";
-import Admin from "./pages/Admin";
+import Admin from "./pages/admin/Admin";
 
 function App() {
   return (
@@ -24,7 +23,6 @@ function App() {
 
           {/* Public */}
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
 

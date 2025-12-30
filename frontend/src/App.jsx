@@ -11,10 +11,10 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 
 // dashboards
-import Student from "./pages/student";
-import Parent from "./pages/parent";
-import Teacher from "./pages/teacher";
-import Admin from "./pages/admin";
+import Student from "./pages/Student";
+import Parent from "./pages/Parent";
+import Teacher from "./pages/Teacher";
+import Admin from "./pages/Admin";
 
 function App() {
   return (

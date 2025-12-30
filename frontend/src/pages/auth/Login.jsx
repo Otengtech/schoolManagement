@@ -41,11 +41,11 @@ const Login = () => {
       setErrors(prev => ({ ...prev, [field]: "" }));
     }
   };
-
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const validateField = (field, value) => {
     switch (field) {
       case 'email':
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!value) return "Email is required";
         if (!emailRegex.test(value)) return "Please enter a valid email address";
         return "";
@@ -229,7 +229,7 @@ const Login = () => {
           </div>
 
           {/* RIGHT - Login Form */}
-          <div className="p-6 md:p-8 md:overflow-y-auto">
+          <div className="px-6 py-10 md:px-8 md:p-8 md:overflow-y-auto">
             <div className="max-w-md mx-auto">
               <div className="text-center mb-6">
                 <h2 className="text-3xl font-bold text-gray-800 mb-1">Login</h2>
@@ -357,7 +357,7 @@ const Login = () => {
                 </div>
 
                 {/* REMEMBER ME & FORGOT PASSWORD */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div className="flex justify-between items-start sm:items-center gap-3">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -381,7 +381,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className={`w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-medium text-white transition-all duration-200 text-sm ${
+                  className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 text-sm ${
                     loading
                       ? "bg-green-400 cursor-not-allowed"
                       : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-lg"

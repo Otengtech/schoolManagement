@@ -244,7 +244,7 @@ const Signup = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-gray-50 flex items-center justify-center">
       <div className="w-full bg-white overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 h-full md:h-screen">
           {/* LEFT - Information Sectio */}
           <div className="bg-gradient-to-br from-green-600 to-green-800 p-8 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-green-400 rounded-full -translate-y-16 translate-x-16 opacity-20"></div>
@@ -366,7 +366,7 @@ const Signup = () => {
           </div>
 
           {/* RIGHT - Form Section */}
-          <div className="p-8 md:p-12 overflow-y-auto max-h-screen scrollbar-hide">
+          <div className="p-8 md:p-12 md:overflow-y-auto max-h-screen scrollbar-hide">
             <div className="max-w-md mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">

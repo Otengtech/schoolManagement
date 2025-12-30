@@ -94,8 +94,8 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-gray-50 flex items-center justify-center">
-      <div className="w-full bg-white overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-2">
+      <div className="w-full min-h-screen bg-white overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
           {/* LEFT - Information Section */}
           <div className="bg-gradient-to-br from-green-600 to-green-800 p-8 text-white relative overflow-hidden">
             {/* Decorative elements */}

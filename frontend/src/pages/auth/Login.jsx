@@ -151,7 +151,7 @@ const Login = () => {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="w-full min-h-screen bg-white overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-2 h-screen">
+        <div className="grid grid-cols-1 lg:grid-cols-2 h-full md:h-screen">
           {/* LEFT - Hero Section */}
           <div className="bg-gradient-to-br from-green-600 to-green-800 p-6 md:p-16 text-white relative overflow-hidden">
             {/* Decorative elements */}
@@ -229,10 +229,10 @@ const Login = () => {
           </div>
 
           {/* RIGHT - Login Form */}
-          <div className="p-6 md:p-8 overflow-y-auto">
+          <div className="p-6 md:p-8 md:overflow-y-auto">
             <div className="max-w-md mx-auto">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-1">Sign In</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-1">Login</h2>
                 <p className="text-sm text-gray-600">Enter your credentials to continue</p>
               </div>
 
@@ -395,7 +395,7 @@ const Login = () => {
                   ) : (
                     <>
                       <FaSignInAlt className="text-sm" />
-                      Sign In to Dashboard
+                      Login
                     </>
                   )}
                 </button>

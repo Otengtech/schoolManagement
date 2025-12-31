@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaHome,
   FaUserGraduate,
@@ -63,6 +63,18 @@ const AdminDashboard = () => {
         return <MainDashboard />;
     }
   };
+
+  useEffect(() => {
+  if (isSidebarOpen && window.innerWidth < 1024) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [isSidebarOpen]);
 
   return (
     <div className="min-h-screen bg-gray-100">

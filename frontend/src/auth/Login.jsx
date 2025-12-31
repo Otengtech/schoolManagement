@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../../api/auth";
-import { useAuth } from "../../context/AuthContext";
+import { loginUser } from "../api/auth";
+import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { validateLoginForm } from "../../utils/validators";
+import { validateLoginForm } from "../utils/validators";
 import {
   FaEnvelope,
   FaLock,

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { forgotPassword } from "../../api/auth";
-import { validateEmail } from "../../utils/validators";
+import { forgotPassword } from "../api/auth";
+import { validateEmail } from "../utils/validators";
 import { toast } from "react-toastify";
 import { 
   FaEnvelope, 

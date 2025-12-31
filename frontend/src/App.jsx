@@ -5,26 +5,26 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // auth pages
-import Login from "./pages/auth/Login";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
+import Login from "./auth/Login";
+import ForgotPassword from "./auth/ForgotPassword";
+import ResetPassword from "./auth/ResetPassword";
 
 // dashboards
-import Student from "./pages/Student";
-import Parent from "./pages/Parent";
-import Teacher from "./pages/Teacher";
-import Admin from "./pages/admin/Admin";
+import Student from "./pages/student/StudentDashboard";
+import Parent from "./pages/parent/ParentDashboard";
+import Teacher from "./pages/teacher/TeacherDashboard";
+import Admin from "./pages/admin/AdminDashboard";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-
           {/* Public */}
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/admin" element={<Admin />} />
 
           {/* Student */}
           <Route
@@ -68,14 +68,13 @@ function App() {
 
           {/* Default */}
           <Route path="/" element={<Navigate to="/login" />} />
-
         </Routes>
         <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        newestOnTop
-        pauseOnHover
-      />
+          position="top-right"
+          autoClose={3000}
+          newestOnTop
+          pauseOnHover
+        />
       </BrowserRouter>
     </AuthProvider>
   );

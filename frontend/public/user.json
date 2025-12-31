@@ -1,0 +1,24 @@
+{
+  "users": [
+    { "id": 1, "name": "Ebenezer", "email": "oteng@gmail.com", "role": "teacher", "status": "active" },
+    { "id": 2, "name": "Ama", "email": "ama@gmail.com", "role": "student", "status": "active" },
+    { "id": 3, "name": "Kofi", "email": "kofi@gmail.com", "role": "student", "status": "active" },
+    { "id": 4, "name": "Obed", "email": "obed@gmail.com", "role": "student", "status": "active" },
+    { "id": 5, "name": "Prince", "email": "prince@gmail.com", "role": "student", "status": "active" },
+    { "id": 6, "name": "John", "email": "john@gmail.com", "role": "student", "status": "active" },
+    { "id": 7, "name": "Raymond", "email": "raymond@gmail.com", "role": "student", "status": "active" },
+    { "id": 8, "name": "Linda", "email": "linda@gmail.com", "role": "student", "status": "inactive" },
+    { "id": 9, "name": "Samuel", "email": "samuel@gmail.com", "role": "teacher", "status": "active" },
+    { "id": 10, "name": "Yaw", "email": "yaw@gmail.com", "role": "student", "status": "active" },
+    { "id": 11, "name": "Akua", "email": "akua@gmail.com", "role": "parent", "status": "active" },
+    { "id": 12, "name": "Daniel", "email": "daniel@gmail.com", "role": "teacher", "status": "active" },
+    { "id": 13, "name": "Grace", "email": "grace@gmail.com", "role": "student", "status": "inactive" },
+    { "id": 14, "name": "Michael", "email": "michael@gmail.com", "role": "parent", "status": "active" },
+    { "id": 15, "name": "Esther", "email": "esther@gmail.com", "role": "student", "status": "active" },
+    { "id": 16, "name": "Kwame", "email": "kwame@gmail.com", "role": "teacher", "status": "active" },
+    { "id": 17, "name": "Patricia", "email": "patricia@gmail.com", "role": "student", "status": "inactive" },
+    { "id": 18, "name": "Joseph", "email": "joseph@gmail.com", "role": "student", "status": "active" },
+    { "id": 19, "name": "Sandra", "email": "sandra@gmail.com", "role": "parent", "status": "active" },
+    { "id": 20, "name": "Isaac", "email": "isaac@gmail.com", "role": "parent", "status": "active" }
+  ]
+}

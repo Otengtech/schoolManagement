@@ -67,7 +67,7 @@ const TopNavbar = ({ toggleSidebar, isSidebarOpen }) => {
   };
 
   return (
-    <div className="h-16 pl-16 md:pl-0 bg-white shadow flex items-center justify-between px-4 md:px-6 relative z-30">
+    <div className="h-16 pl-16 md:pl-4 bg-white shadow flex items-center justify-between px-4 md:px-6 relative z-30">
       {/* Left */}
       <div>
         <h1 className="text-lg font-bold text-gray-800">TriNova System</h1>

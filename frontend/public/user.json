@@ -1,24 +1,244 @@
 {
   "users": [
-    { "id": 1, "name": "Ebenezer", "email": "oteng@gmail.com", "role": "teacher", "status": "active" },
-    { "id": 2, "name": "Ama", "email": "ama@gmail.com", "role": "student", "status": "active" },
-    { "id": 3, "name": "Kofi", "email": "kofi@gmail.com", "role": "student", "status": "active" },
-    { "id": 4, "name": "Obed", "email": "obed@gmail.com", "role": "student", "status": "active" },
-    { "id": 5, "name": "Prince", "email": "prince@gmail.com", "role": "student", "status": "active" },
-    { "id": 6, "name": "John", "email": "john@gmail.com", "role": "student", "status": "active" },
-    { "id": 7, "name": "Raymond", "email": "raymond@gmail.com", "role": "student", "status": "active" },
-    { "id": 8, "name": "Linda", "email": "linda@gmail.com", "role": "student", "status": "inactive" },
-    { "id": 9, "name": "Samuel", "email": "samuel@gmail.com", "role": "teacher", "status": "active" },
-    { "id": 10, "name": "Yaw", "email": "yaw@gmail.com", "role": "student", "status": "active" },
-    { "id": 11, "name": "Akua", "email": "akua@gmail.com", "role": "parent", "status": "active" },
-    { "id": 12, "name": "Daniel", "email": "daniel@gmail.com", "role": "teacher", "status": "active" },
-    { "id": 13, "name": "Grace", "email": "grace@gmail.com", "role": "student", "status": "inactive" },
-    { "id": 14, "name": "Michael", "email": "michael@gmail.com", "role": "parent", "status": "active" },
-    { "id": 15, "name": "Esther", "email": "esther@gmail.com", "role": "student", "status": "active" },
-    { "id": 16, "name": "Kwame", "email": "kwame@gmail.com", "role": "teacher", "status": "active" },
-    { "id": 17, "name": "Patricia", "email": "patricia@gmail.com", "role": "student", "status": "inactive" },
-    { "id": 18, "name": "Joseph", "email": "joseph@gmail.com", "role": "student", "status": "active" },
-    { "id": 19, "name": "Sandra", "email": "sandra@gmail.com", "role": "parent", "status": "active" },
-    { "id": 20, "name": "Isaac", "email": "isaac@gmail.com", "role": "parent", "status": "active" }
+    {
+      "id": 1,
+      "firstName": "Ama",
+      "lastName": "Mensah",
+      "gender": "Female",
+      "dateOfBirth": "2008-04-12",
+      "rollNumber": "STU-001",
+      "religion": "Christianity",
+      "academicInformation": {
+        "email": "ama@gmail.com",
+        "level": "JHS 2",
+        "section": "A",
+        "admissionId": "ADM-2025-001"
+      },
+      "contactInformation": {
+        "phoneNumber": "0241234567"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-10"
+    },
+    {
+      "id": 2,
+      "firstName": "Kofi",
+      "lastName": "Boateng",
+      "gender": "Male",
+      "dateOfBirth": "2007-09-22",
+      "rollNumber": "STU-002",
+      "religion": "Islam",
+      "academicInformation": {
+        "email": "kofi@gmail.com",
+        "level": "JHS 3",
+        "section": "B",
+        "admissionId": "ADM-2025-002"
+      },
+      "contactInformation": {
+        "phoneNumber": "0559876543"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-11"
+    },
+    {
+      "id": 3,
+      "firstName": "Yaw",
+      "lastName": "Asare",
+      "gender": "Male",
+      "dateOfBirth": "2009-02-18",
+      "rollNumber": "STU-003",
+      "religion": "Christianity",
+      "academicInformation": {
+        "email": "yaw@gmail.com",
+        "level": "JHS 1",
+        "section": "C",
+        "admissionId": "ADM-2025-003"
+      },
+      "contactInformation": {
+        "phoneNumber": "0203344556"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-12"
+    },
+    {
+      "id": 4,
+      "firstName": "Akua",
+      "lastName": "Owusu",
+      "gender": "Female",
+      "dateOfBirth": "2008-06-30",
+      "rollNumber": "STU-004",
+      "religion": "Christianity",
+      "academicInformation": {
+        "email": "akua@gmail.com",
+        "level": "JHS 2",
+        "section": "A",
+        "admissionId": "ADM-2025-004"
+      },
+      "contactInformation": {
+        "phoneNumber": "0278899001"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-13"
+    },
+    {
+      "id": 5,
+      "firstName": "Prince",
+      "lastName": "Darko",
+      "gender": "Male",
+      "dateOfBirth": "2007-11-05",
+      "rollNumber": "STU-005",
+      "religion": "Traditional",
+      "academicInformation": {
+        "email": "prince@gmail.com",
+        "level": "JHS 3",
+        "section": "B",
+        "admissionId": "ADM-2025-005"
+      },
+      "contactInformation": {
+        "phoneNumber": "0541122334"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-14"
+    },
+    {
+      "id": 6,
+      "firstName": "Linda",
+      "lastName": "Appiah",
+      "gender": "Female",
+      "dateOfBirth": "2009-08-14",
+      "rollNumber": "STU-006",
+      "religion": "Islam",
+      "academicInformation": {
+        "email": "linda@gmail.com",
+        "level": "JHS 1",
+        "section": "A",
+        "admissionId": "ADM-2025-006"
+      },
+      "contactInformation": {
+        "phoneNumber": "0264455667"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "inactive",
+      "createdAt": "2025-01-15"
+    },
+    {
+      "id": 7,
+      "firstName": "Joseph",
+      "lastName": "Adjei",
+      "gender": "Male",
+      "dateOfBirth": "2008-01-25",
+      "rollNumber": "STU-007",
+      "religion": "Christianity",
+      "academicInformation": {
+        "email": "joseph@gmail.com",
+        "level": "JHS 2",
+        "section": "C",
+        "admissionId": "ADM-2025-007"
+      },
+      "contactInformation": {
+        "phoneNumber": "0239988776"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-16"
+    },
+    {
+      "id": 8,
+      "firstName": "Esther",
+      "lastName": "Gyasi",
+      "gender": "Female",
+      "dateOfBirth": "2007-03-09",
+      "rollNumber": "STU-008",
+      "religion": "Christianity",
+      "academicInformation": {
+        "email": "esther@gmail.com",
+        "level": "JHS 3",
+        "section": "A",
+        "admissionId": "ADM-2025-008"
+      },
+      "contactInformation": {
+        "phoneNumber": "0506677889"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-17"
+    },
+    {
+      "id": 9,
+      "firstName": "Kwame",
+      "lastName": "Antwi",
+      "gender": "Male",
+      "dateOfBirth": "2009-12-01",
+      "rollNumber": "STU-009",
+      "religion": "Traditional",
+      "academicInformation": {
+        "email": "kwame@gmail.com",
+        "level": "JHS 1",
+        "section": "B",
+        "admissionId": "ADM-2025-009"
+      },
+      "contactInformation": {
+        "phoneNumber": "0593344556"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-18"
+    },
+    {
+      "id": 10,
+      "firstName": "Sandra",
+      "lastName": "Amoah",
+      "gender": "Female",
+      "dateOfBirth": "2008-10-19",
+      "rollNumber": "STU-010",
+      "religion": "Christianity",
+      "academicInformation": {
+        "email": "sandra@gmail.com",
+        "level": "JHS 2",
+        "section": "B",
+        "admissionId": "ADM-2025-010"
+      },
+      "contactInformation": {
+        "phoneNumber": "0571122445"
+      },
+      "studentPhoto": {
+        "type": "icon",
+        "icon": "FaUserGraduate"
+      },
+      "status": "active",
+      "createdAt": "2025-01-19"
+    }
   ]
 }

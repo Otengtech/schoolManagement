@@ -59,8 +59,6 @@ const Sidebar = ({ setActivePage }) => {
       submenu: [
         { label: "Admission Form", icon: <FaFileAlt />, action: () => setActivePage("admission-form") },
         { label: "View Students", icon: <FaList />, action: () => setActivePage("view-students") },
-        { label: "Manage Students", icon: <FaEdit />, action: () => setActivePage("manage-students") },
-        { label: "Search Students", icon: <FaSearch />, action: () => setActivePage("student-search") },
       ],
     },
     {
@@ -69,8 +67,8 @@ const Sidebar = ({ setActivePage }) => {
       icon: <FaChalkboardTeacher />,
       hasDropdown: true,
       submenu: [
-        { label: "Add Teacher", icon: <FaUserPlus />, action: () => setActivePage("add-teacher") },
-        { label: "View Teachers", icon: <FaList />, action: () => setActivePage("view-teachers") },
+        { label: "Teacher Form", icon: <FaUserPlus />, action: () => setActivePage("teacher-form") },
+        { label: "View Teachers", icon: <FaList />, action: () => setActivePage("teachers") },
       ],
     },
     { id: "classes", label: "Classes", icon: <FaLayerGroup />, action: () => setActivePage("classes") },

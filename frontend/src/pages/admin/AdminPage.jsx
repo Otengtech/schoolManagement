@@ -2,9 +2,12 @@ import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import TopNavbar from "./components/TopNavbar";
 
-import StudentAdmission from "./pages/StudentPage/AdmissionForm";
+import Students from "./pages/StudentPage/Students";
+import StudentsAdmission from "./pages/StudentPage/AdmissionForm";
+import Teachers from "./pages/TeacherPage/Teachers";
+import TeacherForm from "./pages/TeacherPage/TeacherForm";
+
 import MainDashboard from "./pages/MainDashboard";
-import Teachers from "./pages/Teachers";
 import Classes from "./pages/Parents";
 
 const MainPage = () => {
@@ -12,15 +15,19 @@ const MainPage = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(prev => !prev);
+    setIsSidebarOpen((prev) => !prev);
   };
 
   const renderPage = () => {
     switch (activePage) {
-      case "admission-form":
-        return <StudentAdmission />;
       case "dashboard":
         return <MainDashboard />;
+      case "admission-form":
+        return <StudentsAdmission />;
+      case "view-students":
+        return <Students />;
+      case "teacher-form":
+        return <TeacherForm />;
       case "teachers":
         return <Teachers />;
       case "classes":
@@ -33,10 +40,7 @@ const MainPage = () => {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <Sidebar
-        setActivePage={setActivePage}
-        isSidebarOpen={isSidebarOpen}
-      />
+      <Sidebar setActivePage={setActivePage} isSidebarOpen={isSidebarOpen} />
 
       {/* Main Content */}
       <div className="flex-1 bg-gray-100">
@@ -45,8 +49,9 @@ const MainPage = () => {
           isSidebarOpen={isSidebarOpen}
         />
 
-        <div className="overflow-y-auto h-[calc(100vh-4rem)] pb-6 scrollbar-hide">
-          {renderPage()}
+        <div className="h-[calc(100vh-4rem)] overflow-y-auto scrollbar-hide">
+          {/* Padding wrapper */}
+          <div className="pb-6">{renderPage()}</div>
         </div>
       </div>
     </div>

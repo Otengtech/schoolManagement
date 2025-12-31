@@ -103,7 +103,7 @@ const AdminDashboard = () => {
           <p className="text-sm text-white">Admin Dashboard</p>
         </div>
 
-        <nav className="p-4 overflow-y-auto h-[calc(100vh-180px)]">
+        <nav className="px-4 pt-4 pb-12 md:p-4 overflow-y-auto h-[calc(100vh-180px)]">
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.id}>

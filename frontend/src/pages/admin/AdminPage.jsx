@@ -2,37 +2,50 @@ import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import TopNavbar from "./components/TopNavbar";
 
-import Students from "./pages/Students";
+import StudentAdmission from "./pages/StudentPage/AdmissionForm";
 import MainDashboard from "./pages/MainDashboard";
 import Teachers from "./pages/Teachers";
 import Classes from "./pages/Parents";
 
 const MainPage = () => {
   const [activePage, setActivePage] = useState("dashboard");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(prev => !prev);
+  };
 
   const renderPage = () => {
     switch (activePage) {
-      case "students":
-        return <Students />;
+      case "admission-form":
+        return <StudentAdmission />;
+      case "dashboard":
+        return <MainDashboard />;
       case "teachers":
         return <Teachers />;
       case "classes":
         return <Classes />;
       default:
-        return <h2 className="text-2xl font-bold">Welcome Admin 👋</h2>;
+        return <MainDashboard />;
     }
   };
 
   return (
-    <div className="flex">
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <Sidebar setActivePage={setActivePage} />
+      <Sidebar
+        setActivePage={setActivePage}
+        isSidebarOpen={isSidebarOpen}
+      />
 
       {/* Main Content */}
-      <div className="flex-1 min-h-screen bg-gray-100">
-        <TopNavbar />
+      <div className="flex-1 bg-gray-100">
+        <TopNavbar
+          toggleSidebar={toggleSidebar}
+          isSidebarOpen={isSidebarOpen}
+        />
 
-        <div className="p-6">
+        <div className="overflow-y-auto h-[calc(100vh-4rem)] scrollbar-hide">
           {renderPage()}
         </div>
       </div>

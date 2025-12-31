@@ -2,14 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import {
   FaUserGraduate,
   FaChalkboardTeacher,
-  FaUsers,
   FaCog,
   FaChartBar,
-  FaBook,
   FaCalendarAlt,
   FaMoneyBill,
   FaEnvelope,
-  FaBell,
   FaFileAlt,
   FaList,
   FaEdit,
@@ -21,7 +18,6 @@ import {
   FaUserPlus,
   FaSearch,
   FaLayerGroup,
-  FaIdCard,
   FaUserShield,
   FaTachometerAlt,
 } from "react-icons/fa";
@@ -31,6 +27,7 @@ const Sidebar = ({ setActivePage }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [currentPage, setCurrentPage] = useState("dashboard");
   const navRefs = useRef({});
 
   /* ------------------ SCREEN CHECK ------------------ */
@@ -38,14 +35,9 @@ const Sidebar = ({ setActivePage }) => {
     const checkScreen = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      // On mobile, sidebar should be closed by default
-      if (mobile) {
-        setIsOpen(false);
-      } else {
-        setIsOpen(true); // Expanded by default on desktop
-      }
+      if (mobile) setIsOpen(false);
+      else setIsOpen(true);
     };
-
     checkScreen();
     window.addEventListener("resize", checkScreen);
     return () => window.removeEventListener("resize", checkScreen);
@@ -65,26 +57,10 @@ const Sidebar = ({ setActivePage }) => {
       icon: <FaUserGraduate />,
       hasDropdown: true,
       submenu: [
-        {
-          label: "Admission Form",
-          icon: <FaFileAlt />,
-          action: () => setActivePage("admission-form"),
-        },
-        {
-          label: "View Students",
-          icon: <FaList />,
-          action: () => setActivePage("view-students"),
-        },
-        {
-          label: "Manage Students",
-          icon: <FaEdit />,
-          action: () => setActivePage("manage-students"),
-        },
-        {
-          label: "Search Students",
-          icon: <FaSearch />,
-          action: () => setActivePage("student-search"),
-        },
+        { label: "Admission Form", icon: <FaFileAlt />, action: () => setActivePage("admission-form") },
+        { label: "View Students", icon: <FaList />, action: () => setActivePage("view-students") },
+        { label: "Manage Students", icon: <FaEdit />, action: () => setActivePage("manage-students") },
+        { label: "Search Students", icon: <FaSearch />, action: () => setActivePage("student-search") },
       ],
     },
     {
@@ -93,49 +69,15 @@ const Sidebar = ({ setActivePage }) => {
       icon: <FaChalkboardTeacher />,
       hasDropdown: true,
       submenu: [
-        {
-          label: "Add Teacher",
-          icon: <FaUserPlus />,
-          action: () => setActivePage("add-teacher"),
-        },
-        {
-          label: "View Teachers",
-          icon: <FaList />,
-          action: () => setActivePage("view-teachers"),
-        },
+        { label: "Add Teacher", icon: <FaUserPlus />, action: () => setActivePage("add-teacher") },
+        { label: "View Teachers", icon: <FaList />, action: () => setActivePage("view-teachers") },
       ],
     },
-    // Additional menu items to make it more comprehensive
-    {
-      id: "classes",
-      label: "Classes",
-      icon: <FaLayerGroup />,
-      action: () => setActivePage("classes"),
-    },
-    {
-      id: "attendance",
-      label: "Attendance",
-      icon: <FaCalendarAlt />,
-      action: () => setActivePage("attendance"),
-    },
-    {
-      id: "finance",
-      label: "Finance",
-      icon: <FaMoneyBill />,
-      action: () => setActivePage("finance"),
-    },
-    {
-      id: "reports",
-      label: "Reports",
-      icon: <FaChartBar />,
-      action: () => setActivePage("reports"),
-    },
-    {
-      id: "communication",
-      label: "Communication",
-      icon: <FaEnvelope />,
-      action: () => setActivePage("communication"),
-    },
+    { id: "classes", label: "Classes", icon: <FaLayerGroup />, action: () => setActivePage("classes") },
+    { id: "attendance", label: "Attendance", icon: <FaCalendarAlt />, action: () => setActivePage("attendance") },
+    { id: "finance", label: "Finance", icon: <FaMoneyBill />, action: () => setActivePage("finance") },
+    { id: "reports", label: "Reports", icon: <FaChartBar />, action: () => setActivePage("reports") },
+    { id: "communication", label: "Communication", icon: <FaEnvelope />, action: () => setActivePage("communication") },
   ];
 
   /* ------------------ HANDLERS ------------------ */
@@ -144,6 +86,7 @@ const Sidebar = ({ setActivePage }) => {
       setOpenDropdown(openDropdown === item.id ? null : item.id);
     } else {
       item.action();
+      setCurrentPage(item.id);
       if (isMobile) setIsOpen(false);
     }
   };
@@ -151,20 +94,15 @@ const Sidebar = ({ setActivePage }) => {
   /* ------------------ FLOATING MENU ------------------ */
   const FloatingMenu = () => {
     if (!hoveredItem || isOpen || isMobile) return null;
-
     const item = navItems.find((n) => n.id === hoveredItem);
     if (!item || !item.submenu) return null;
-
     const rect = navRefs.current[hoveredItem]?.getBoundingClientRect();
     if (!rect) return null;
 
     return (
       <div
         className="fixed bgc text-white z-50 shadow-xl rounded-lg overflow-hidden min-w-[200px] border border-gray-700"
-        style={{
-          top: rect.top,
-          left: rect.right + 8,
-        }}
+        style={{ top: rect.top, left: rect.right + 8 }}
         onMouseEnter={() => setHoveredItem(item.id)}
         onMouseLeave={() => setHoveredItem(null)}
       >
@@ -173,9 +111,12 @@ const Sidebar = ({ setActivePage }) => {
             key={i}
             onClick={() => {
               sub.action();
+              setCurrentPage(sub.label.toLowerCase().replace(/\s+/g, "-"));
               setHoveredItem(null);
             }}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-700 cursor-pointer transition-colors duration-200"
+            className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-200 border-t border-gray-700 ${
+              currentPage === sub.label.toLowerCase().replace(/\s+/g, "-") ? "bg-gray-700" : ""
+            }`}
           >
             <span className="yellow">{sub.icon}</span>
             <span className="text-sm font-medium">{sub.label}</span>
@@ -199,7 +140,7 @@ const Sidebar = ({ setActivePage }) => {
       {isMobile && !isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed top-4 left-4 text-gray-900 p-3 rounded-lg z-50 shadow-lg hover:bg-gray-800 transition-colors duration-200"
+          className="fixed top-3 left-4 yellow p-3 rounded-lg z-50 transition-colors duration-200"
         >
           <FaBars className="text-lg" />
         </button>
@@ -209,26 +150,16 @@ const Sidebar = ({ setActivePage }) => {
       <div
         className={`${
           isMobile
-            ? `fixed top-0 left-0 h-screen w-64 z-50 transform transition-transform duration-300 ease-in-out ${
-                isOpen ? "translate-x-0" : "-translate-x-full"
-              }`
-            : `relative h-screen transition-all duration-300 ${
-                isOpen ? "w-64" : "w-16"
-              }`
+            ? `fixed top-0 left-0 h-screen w-64 z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"}`
+            : `relative h-screen transition-all duration-300 ${isOpen ? "w-64" : "w-16"}`
         } bgc text-white flex flex-col`}
       >
         {/* HEADER */}
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
-          {isOpen && (
-            <h2 className="yellow text-xl font-bold whitespace-nowrap">Admin Panel</h2>
-          )}
+          {isOpen && <h2 className="text-xl yellow font-bold whitespace-nowrap">Admin Panel</h2>}
           <div className="flex items-center gap-2">
-
             {!isMobile && (
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="yellow transition-colors duration-200"
-              >
+              <button onClick={() => setIsOpen(!isOpen)} className="transition-colors duration-200">
                 {isOpen ? <FaChevronRight /> : <FaBars />}
               </button>
             )}
@@ -250,31 +181,22 @@ const Sidebar = ({ setActivePage }) => {
               key={item.id}
               ref={(el) => (navRefs.current[item.id] = el)}
               className="relative"
-              onMouseEnter={() =>
-                !isMobile &&
-                !isOpen &&
-                item.hasDropdown &&
-                setHoveredItem(item.id)
-              }
+              onMouseEnter={() => !isMobile && !isOpen && item.hasDropdown && setHoveredItem(item.id)}
               onMouseLeave={() => !isMobile && !isOpen && setHoveredItem(null)}
             >
               <div
                 onClick={() => handleClick(item)}
-                className={`flex items-center ${
-                  isOpen ? "gap-4 px-4" : "justify-center px-2"
-                } py-3 cursor-pointer hover:bg-gray-800 transition-colors duration-200 relative group`}
+                className={`flex items-center ${isOpen ? "gap-4 px-4" : "justify-center px-2"} py-3 cursor-pointer hover:bg-gray-800 transition-colors duration-200 relative group ${
+                  currentPage === item.id ? "bg-gray-700" : ""
+                }`}
               >
                 <span className="text-xl yellow">{item.icon}</span>
                 {isOpen && (
                   <>
                     <span className="flex-grow">{item.label}</span>
                     {item.hasDropdown && (
-                      <span className="transition-transform duration-200">
-                        {openDropdown === item.id ? (
-                          <FaChevronDown />
-                        ) : (
-                          <FaChevronRight />
-                        )}
+                      <span className="transition-transform yellow duration-200">
+                        {openDropdown === item.id ? <FaChevronDown /> : <FaChevronRight />}
                       </span>
                     )}
                   </>
@@ -282,7 +204,7 @@ const Sidebar = ({ setActivePage }) => {
 
                 {/* Tooltip for collapsed state */}
                 {!isOpen && !isMobile && (
-                  <div className="absolute left-full ml-2 px-3 py-2 bgc text-white text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
+                  <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 pointer-events-none">
                     {item.label}
                   </div>
                 )}
@@ -296,9 +218,12 @@ const Sidebar = ({ setActivePage }) => {
                       key={i}
                       onClick={() => {
                         sub.action();
+                        setCurrentPage(sub.label.toLowerCase().replace(/\s+/g, "-"));
                         if (isMobile) setIsOpen(false);
                       }}
-                      className="flex items-center gap-3 py-2 px-4 hover:bg-gray-800 cursor-pointer transition-colors duration-200"
+                      className={`flex items-center gap-3 py-2 px-4 hover:bg-gray-800 cursor-pointer transition-colors duration-200 ${
+                        currentPage === sub.label.toLowerCase().replace(/\s+/g, "-") ? "bg-gray-700" : ""
+                      }`}
                     >
                       <span className="yellow">{sub.icon}</span>
                       <span className="text-sm">{sub.label}</span>
@@ -309,19 +234,6 @@ const Sidebar = ({ setActivePage }) => {
             </li>
           ))}
         </ul>
-
-        {/* FOOTER */}
-        <div className="border-t border-gray-800 p-4 space-y-2">
-          <div
-            onClick={() => setActivePage("settings")}
-            className={`flex items-center ${
-              isOpen ? "gap-3 px-2" : "justify-center"
-            } py-2 yellow hover:bg-gray-800 cursor-pointer transition-colors duration-200 rounded`}
-          >
-            <FaCog />
-            {isOpen && <span>Settings</span>}
-          </div>
-        </div>
       </div>
 
       {/* FLOATING MENU */}

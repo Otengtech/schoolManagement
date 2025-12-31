@@ -13,7 +13,7 @@ import ResetPassword from "./auth/ResetPassword";
 import Student from "./pages/student/StudentDashboard";
 import Parent from "./pages/parent/ParentDashboard";
 import Teacher from "./pages/teacher/TeacherDashboard";
-import Admin from "./pages/admin/AdminDashboard";
+import Admin from "./pages/admin/AdminPage";
 
 function App() {
   return (

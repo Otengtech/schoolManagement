@@ -45,7 +45,7 @@ const MainPage = () => {
           isSidebarOpen={isSidebarOpen}
         />
 
-        <div className="overflow-y-auto h-[calc(100vh-4rem)] scrollbar-hide">
+        <div className="">
           {renderPage()}
         </div>
       </div>

@@ -123,7 +123,7 @@ const StudentsAdmission = () => {
   ];
 
   return (
-    <div className="h-full bg-gray-50 p-4 md:p-6">
+    <div className="h-full bg-gray-200 p-4 md:p-6">
       <ToastContainer />
       
       {/* Header */}
@@ -138,7 +138,7 @@ const StudentsAdmission = () => {
 
       <div className="max-w-7xl mx-auto">
         {/* Form Container */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-gray-100 overflow-hidden">
           {/* Form Header */}
           <div className="bg-gradient-to-r from-blue-700 to-purple-600 p-6 text-white">
             <h2 className="text-xl md:text-2xl font-bold">Add New Student</h2>

@@ -94,7 +94,7 @@ const TeacherForm = () => {
   const subjectOptions = ["Mathematics", "English", "Science", "ICT", "Social Studies"];
 
   return (
-    <div className="p-6 bg-gray-50 h-full">
+    <div className="p-6 bg-gray-200 h-full">
       <ToastContainer />
 
       <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">

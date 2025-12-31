@@ -114,7 +114,7 @@ const Students = () => {
   const uniqueClasses = [...new Set(users.map(user => user.academicInformation.level))];
 
   return (
-    <div className="p-4 md:p-6 min-h-[calc(100vh-4rem)] bg-gray-50">
+    <div className="p-4 md:p-6 min-h-[calc(100vh-4rem)] bg-gray-200">
       {/* Header */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -167,7 +167,7 @@ const Students = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+      <div className="bg-gray-200 rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Search Input */}
           <div className="flex-1">

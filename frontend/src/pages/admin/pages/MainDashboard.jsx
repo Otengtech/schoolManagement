@@ -83,7 +83,7 @@ const MainDashboard = () => {
       {/* Top Stats with Icons */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {topStats.map((stat) => (
-          <div key={stat.title} className="bg-white shadow-md p-4 hover:shadow-lg transition-shadow">
+          <div key={stat.title} className="bg-white rounded-full shadow-md p-4 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-evenly">
               <div className={`p-3 rounded-full ${stat.color}`}>
                 <div className={`text-4xl ${stat.textColor}`}>

@@ -77,7 +77,7 @@ const MainDashboard = () => {
   ];
 
   return (
-    <div className="p-4 md:p-6 bg-gray-200 h-full md:h-[85vh] md:overflow-y-auto md:scrollbar-hide">
+    <div className="p-4 md:p-6 bg-gray-200 h-full">
       <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Dashboard</h1>
 
       {/* Top Stats with Icons */}

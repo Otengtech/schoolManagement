@@ -3,6 +3,7 @@ import {
   FaUserCircle,
   FaEnvelope,
   FaBell,
+  FaExclamationCircle,
   FaTasks,
   FaCog,
   FaSignOutAlt,
@@ -13,10 +14,25 @@ const TopNavbar = ({ toggleSidebar, isSidebarOpen }) => {
   const [showMessages, setShowMessages] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const profileRef = useRef();
   const messageRef = useRef();
   const notificationRef = useRef();
+
+  const [announcements, setAnnouncements] = useState([]);
+  useEffect(() => {
+    fetch("/annouce.json")
+      .then((res) => res.json())
+      .then((data) => {
+        setAnnouncements(data.announce);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
 
   // Screen size check
   useEffect(() => {
@@ -60,63 +76,6 @@ const TopNavbar = ({ toggleSidebar, isSidebarOpen }) => {
     },
   ];
 
-  const notifications = [
-    {
-      id: 1,
-      text: "New student registered",
-      time: "Just now",
-      type: "user",
-      read: false,
-    },
-    {
-      id: 2,
-      text: "Payment of $500 received",
-      time: "30 min ago",
-      type: "payment",
-      read: false,
-    },
-    {
-      id: 3,
-      text: "New assignment submitted",
-      time: "2 hours ago",
-      type: "assignment",
-      read: true,
-    },
-    {
-      id: 4,
-      text: "Server maintenance scheduled",
-      time: "1 day ago",
-      type: "system",
-      read: true,
-    },
-    {
-      id: 5,
-      text: "Attendance report generated",
-      time: "2 days ago",
-      type: "report",
-      read: true,
-    },
-  ];
-
-  const unreadMessages = messages.filter((m) => !m.read).length;
-  const unreadNotifications = notifications.filter((n) => !n.read).length;
-
-  const getTypeColor = (type) => {
-    switch (type) {
-      case "user":
-        return "bg-green-100 text-green-800";
-      case "payment":
-        return "bg-blue-100 text-blue-800";
-      case "assignment":
-        return "bg-purple-100 text-purple-800";
-      case "system":
-        return "bg-yellow-100 text-yellow-800";
-      case "report":
-        return "bg-indigo-100 text-indigo-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
 
   return (
     <div className="h-16 pl-16 md:pl-4 bg-[#ffa301] shadow flex items-center justify-between px-4 md:px-6 relative z-30">
@@ -137,11 +96,9 @@ const TopNavbar = ({ toggleSidebar, isSidebarOpen }) => {
             className="relative p-2 rounded-lg hover:bg-gray-100"
           >
             <FaEnvelope className="text-xl text-[#052954]" />
-            {unreadMessages > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                {unreadMessages}
-              </span>
-            )}
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              10
+            </span>
           </button>
 
           {showMessages && (
@@ -166,9 +123,7 @@ const TopNavbar = ({ toggleSidebar, isSidebarOpen }) => {
   "
             >
               {/* Header */}
-              <div className="p-3 border-b font-semibold yellow">
-                Messages
-              </div>
+              <div className="p-3 border-b font-semibold yellow">Messages</div>
 
               {/* Messages List */}
               <div className="max-h-80 overflow-y-auto">
@@ -193,9 +148,9 @@ const TopNavbar = ({ toggleSidebar, isSidebarOpen }) => {
             className="relative p-2 rounded-lg hover:bg-gray-100"
           >
             <FaBell className="text-xl text-[#052954]" />
-            {unreadNotifications > 0 && (
+            {announcements > 0 && (
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                {unreadNotifications}
+                {announcements.length}
               </span>
             )}
           </button>
@@ -217,23 +172,56 @@ const TopNavbar = ({ toggleSidebar, isSidebarOpen }) => {
     bgc
     shadow-xl 
     rounded-lg 
-    border 
     z-50
   "
             >
-              <div className="p-3 border-b font-semibold yellow">Notifications</div>
+              <div className="p-3 border-b font-semibold yellow">
+                Notifications
+              </div>
               <div className="max-h-80 overflow-y-auto">
-                {notifications.map((notif) => (
-                  <div key={notif.id} className="px-4 py-3 border-b">
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${getTypeColor(
-                        notif.type
-                      )}`}
-                    >
-                      {notif.type}
-                    </span>
-                    <p className="text-sm yellow mt-1">{notif.text}</p>
-                    <span className="text-xs text-white">{notif.time}</span>
+                {announcements.map((ann) => (
+                  <div
+                    key={ann.id}
+                    className="border-t flex flex-col gap-2 p-4"
+                  >
+                    {/* Image */}
+                    <div className="flex items-center justify-center">
+                      <div>
+                        {ann.image ? (
+                          <img
+                            src={ann.image}
+                            alt={ann.title}
+                            className="w-10 h-10 object-cover rounded-full"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gray-200 rounded-xl flex items-center justify-center text-gray-400">
+                            No Image
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 ml-3">
+                          <h3 className="text-lg font-semibold yellow">
+                            {ann.title}
+                          </h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        
+                        <p className="text-sm text-white">
+                          {ann.description}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between mt-2 text-xs text-gray-300">
+                        <span>By: {ann.author}</span>
+                        <span>Date: {ann.date}</span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

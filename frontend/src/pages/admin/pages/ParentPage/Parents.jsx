@@ -204,7 +204,7 @@ const SearchFilter = ({
 
 const Table = ({ data, sortConfig, handleSort, startIndex }) => (
   <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
-    <table className="min-w-full">
+    <table className="min-w-full overflow-x-auto scrollbar-hide">
       <thead className="bg-gray-50">
         <tr>
           <th className="px-6 py-4">Image</th>
@@ -229,7 +229,6 @@ const Table = ({ data, sortConfig, handleSort, startIndex }) => (
           <th className="px-6 py-4">Gender</th>
           <th className="px-6 py-4">Child</th>
           <th className="px-6 py-4">Class</th>
-          <th className="px-6 py-4">Email</th>
           <th className="px-6 py-4">Status</th>
           <th className="px-6 py-4">Actions</th>
         </tr>
@@ -246,7 +245,6 @@ const Table = ({ data, sortConfig, handleSort, startIndex }) => (
             <td className="px-6 py-4">{p.gender}</td>
             <td className="px-6 py-4">{p.childName}</td>
             <td className="px-6 py-4">{p.childClass}</td>
-            <td className="px-6 py-4">{p.email}</td>
             <td className="px-6 py-4">
               <span
                 className={`px-3 py-1 rounded-full text-xs font-semibold ${

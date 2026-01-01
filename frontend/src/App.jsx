@@ -10,10 +10,10 @@ import ForgotPassword from "./auth/ForgotPassword";
 import ResetPassword from "./auth/ResetPassword";
 
 // dashboards
-import Student from "./pages/student/StudentDashboard";
 import Parent from "./pages/parent/ParentDashboard";
-import Teacher from "./pages/teacher/TeacherDashboard";
 import Admin from "./pages/admin/AdminPage";
+import Student from "./pages/student/StudentPage";
+import Teacher from "./pages/teacher/TeacherPage";
 
 function App() {
   return (
@@ -25,16 +25,18 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/student" element={<Student />} />
+          <Route path="/teacher" element={<Teacher />} />
 
           {/* Student */}
-          <Route
+          {/* <Route
             path="/student/*"
             element={
               <ProtectedRoute allowedRoles={["student"]}>
                 <Student />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
           {/* Parent */}
           <Route

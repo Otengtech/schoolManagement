@@ -1,0 +1,55 @@
+{
+  "announce": [
+    {
+      "id": 1,
+      "title": "Annual Sports Day 2024",
+      "description": "Join us for our annual sports day event featuring various competitions and activities for all students. The event will take place at the main school ground.",
+      "date": "2024-03-15",
+      "author": "Sports Department",
+      "image": "/images/p4.jpg",
+      "important": true
+    },
+    {
+      "id": 2,
+      "title": "Parent-Teacher Meeting",
+      "description": "Schedule your appointment for the upcoming parent-teacher meeting to discuss your child's progress.",
+      "date": "2024-03-20",
+      "author": "Principal Office",
+      "image": "/images/p3.jpg",
+      "important": true
+    },
+    {
+      "id": 3,
+      "title": "Library Renovation Complete",
+      "description": "Our newly renovated library is now open with extended hours and new books added to the collection.",
+      "date": "2024-03-10",
+      "author": "Library Committee",
+      "image": "/images/p5.jpg"
+    },
+    {
+      "id": 4,
+      "title": "Science Fair Winners",
+      "description": "Congratulations to the winners of the annual science fair. Projects will be displayed in the science block.",
+      "date": "2024-03-05",
+      "author": "Science Department",
+      "image": null
+    },
+    {
+      "id": 5,
+      "title": "Summer Vacation Schedule",
+      "description": "Important dates and schedule for the upcoming summer vacation period. Please check the school calendar.",
+      "date": "2024-04-01",
+      "author": "Administration",
+      "image": "/images/p2.jpg"
+    },
+    {
+      "id": 6,
+      "title": "New Computer Lab Inauguration",
+      "description": "The new computer lab with latest technology will be inaugurated next week by the district education officer.",
+      "date": "2024-03-25",
+      "author": "IT Department",
+      "image": "/images/p1.jpg",
+      "important": true
+    }
+  ]
+}

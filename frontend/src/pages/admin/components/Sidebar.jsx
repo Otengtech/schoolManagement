@@ -3,6 +3,7 @@ import {
   FaUserGraduate,
   FaChalkboardTeacher,
   FaCog,
+  FaBullhorn,
   FaChartBar,
   FaCalendarAlt,
   FaMoneyBill,
@@ -14,7 +15,7 @@ import {
   FaTimes,
   FaChevronDown,
   FaChevronRight,
-  FaSignOutAlt,
+  FaUserFriends,
   FaUserPlus,
   FaSearch,
   FaLayerGroup,
@@ -69,6 +70,26 @@ const Sidebar = ({ setActivePage }) => {
       submenu: [
         { label: "Teacher Form", icon: <FaUserPlus />, action: () => setActivePage("teacher-form") },
         { label: "View Teachers", icon: <FaList />, action: () => setActivePage("teachers") },
+      ],
+    },
+    {
+      id: "parents",
+      label: "Parents",
+      icon: <FaUserFriends />,
+      hasDropdown: true,
+      submenu: [
+        { label: "Parent Form", icon: <FaUserPlus />, action: () => setActivePage("parent-form") },
+        { label: "View Parents", icon: <FaList />, action: () => setActivePage("parents") },
+      ],
+    },
+    {
+      id: "announcements",
+      label: "Announcements",
+      icon: <FaBullhorn />,
+      hasDropdown: true,
+      submenu: [
+        { label: "Announce Form", icon: <FaUserPlus />, action: () => setActivePage("announce-form") },
+        { label: "View Announcements", icon: <FaList />, action: () => setActivePage("announcements") },
       ],
     },
     { id: "classes", label: "Classes", icon: <FaLayerGroup />, action: () => setActivePage("classes") },

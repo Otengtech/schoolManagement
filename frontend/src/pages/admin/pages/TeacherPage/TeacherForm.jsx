@@ -1,297 +1,246 @@
 import React, { useState } from "react";
-import axios from "axios";
 import {
   FaUserTie,
   FaBirthdayCake,
+  FaBook,
+  FaIdBadge,
   FaPhone,
   FaEnvelope,
   FaImage,
   FaSave,
   FaRedo,
-  FaIdBadge,
-  FaBook
+  FaMars,
+  FaVenus,
+  FaGenderless,
+  FaUserGraduate,
+  FaBriefcase,
+  FaChevronDown,
 } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
-const TeacherForm = () => {
+const TeacherAdmission = () => {
+  const [loading, setLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+
   const [formData, setFormData] = useState({
+    teacherId: "",
     firstName: "",
     lastName: "",
     gender: "",
     dateOfBirth: "",
+    age: "",
     religion: "",
-    email: "",
+    qualification: "",
     subject: "",
+    department: "",
     phone: "",
+    email: "",
     bio: "",
-    teacherPhoto: null
+    teacherPhoto: null,
   });
 
-  const [loading, setLoading] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
+  /* ---------------- OPTIONS ---------------- */
+  const genderOptions = [
+    { value: "male", label: "Male", icon: <FaMars /> },
+    { value: "female", label: "Female", icon: <FaVenus /> },
+    { value: "other", label: "Other", icon: <FaGenderless /> },
+  ];
 
+  const religionOptions = ["Christianity", "Islam", "Traditional"];
+  const qualificationOptions = ["Diploma", "Degree", "Masters", "PhD"];
+  const subjectOptions = ["Mathematics", "English", "Science", "ICT", "Social Studies"];
+  const departmentOptions = ["Science", "Arts", "Languages", "ICT"];
+
+  /* ---------------- HANDLERS ---------------- */
   const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
+    const { name, value, files } = e.target;
 
-    if (type === "file") {
-      const file = files[0];
-      setFormData((prev) => ({ ...prev, [name]: file }));
-
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => setPreviewImage(reader.result);
-        reader.readAsDataURL(file);
-      } else {
-        setPreviewImage(null);
-      }
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "teacherPhoto" && files[0]) {
+      setFormData({ ...formData, teacherPhoto: files[0] });
+      setPreviewImage(URL.createObjectURL(files[0]));
+      return;
     }
+
+    if (name === "dateOfBirth") {
+      const birthYear = new Date(value).getFullYear();
+      const age = new Date().getFullYear() - birthYear;
+      setFormData({ ...formData, dateOfBirth: value, age });
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const submitData = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (formData[key]) submitData.append(key, formData[key]);
-      });
-
-      await axios.post("https://api.yourdomain.com/teachers", submitData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      toast.success("Teacher added successfully!");
-      handleReset();
-    } catch (error) {
-      toast.error("Failed to save teacher data");
-    } finally {
+    setTimeout(() => {
+      console.log("Teacher Submitted:", formData);
+      alert("Teacher added successfully!");
       setLoading(false);
-    }
+    }, 1200);
   };
 
   const handleReset = () => {
     setFormData({
+      teacherId: "",
       firstName: "",
       lastName: "",
       gender: "",
       dateOfBirth: "",
+      age: "",
       religion: "",
-      email: "",
+      qualification: "",
       subject: "",
+      department: "",
       phone: "",
+      email: "",
       bio: "",
-      teacherPhoto: null
+      teacherPhoto: null,
     });
     setPreviewImage(null);
   };
 
-  const genderOptions = ["male", "female", "other"];
-  const religionOptions = ["Christianity", "Islam", "Traditional", "Other"];
-  const subjectOptions = ["Mathematics", "English", "Science", "ICT", "Social Studies"];
+  /* ---------------- STYLES ---------------- */
+  const input =
+    "w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#052954]/30 focus:border-[#052954] outline-none transition";
 
   return (
-    <div className="p-6 bg-gray-200 h-full">
-      <ToastContainer />
+    <div className="bg-white rounded-2xl shadow-lg border p-4 md:p-8">
 
-      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-700 to-purple-600 p-6 text-white">
-          <h2 className="text-2xl font-bold">Add New Teacher</h2>
-          <p className="text-indigo-100">Teacher registration form</p>
-        </div>
+      {/* ===== HEADER ===== */}
+      <div className="mb-10">
+        <h1 className="text-2xl md:text-3xl font-bold text-[#052954]">
+          Teacher Admission Form
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Complete all required fields to register a new teacher
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={handleSubmit} className="space-y-10">
 
-          {/* Teacher ID */}
-          <div>
-            <label className="font-medium text-gray-700">
-              Teacher ID <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <FaIdBadge className="absolute left-3 top-3 text-gray-400" />
-              <input
-                type="text"
-                name="teacherId"
-                required
-                value={formData.teacherId}
-                onChange={handleChange}
-                className="pl-10 w-full p-3 border rounded-lg"
-                placeholder="TCH-001"
-              />
-            </div>
-          </div>
+        {/* ===== PERSONAL INFO ===== */}
+        <Section title="Personal Information" icon={<FaUserTie />}>
+          <input name="teacherId" placeholder="Teacher ID *" required className={input} onChange={handleChange} />
+          <input name="firstName" placeholder="First Name *" required className={input} onChange={handleChange} />
+          <input name="lastName" placeholder="Last Name *" required className={input} onChange={handleChange} />
 
-          {/* First Name */}
-          <div>
-            <label className="font-medium text-gray-700">First Name *</label>
-            <input
-              type="text"
-              name="firstName"
-              required
-              value={formData.firstName}
-              onChange={handleChange}
-              className="w-full p-3 border rounded-lg"
-            />
-          </div>
-
-          {/* Last Name */}
-          <div>
-            <label className="font-medium text-gray-700">Last Name *</label>
-            <input
-              type="text"
-              name="lastName"
-              required
-              value={formData.lastName}
-              onChange={handleChange}
-              className="w-full p-3 border rounded-lg"
-            />
-          </div>
-
-          {/* Gender */}
-          <div>
-            <label className="font-medium text-gray-700">Gender *</label>
-            <select
-              name="gender"
-              required
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full p-3 border rounded-lg"
-            >
-              <option value="">Select Gender</option>
-              {genderOptions.map((g) => (
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Date of Birth */}
-          <div>
-            <label className="font-medium text-gray-700">Date of Birth *</label>
-            <div className="relative">
-              <FaBirthdayCake className="absolute left-3 top-3 text-gray-400" />
-              <input
-                type="date"
-                name="dateOfBirth"
-                required
-                value={formData.dateOfBirth}
-                onChange={handleChange}
-                className="pl-10 w-full p-3 border rounded-lg"
-              />
-            </div>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="font-medium text-gray-700">Email</label>
-            <div className="relative">
-              <FaEnvelope className="absolute left-3 top-3 text-gray-400" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="pl-10 w-full p-3 border rounded-lg"
-              />
-            </div>
-          </div>
-
-          {/* Subject */}
-          <div>
-            <label className="font-medium text-gray-700">Subject *</label>
-            <div className="relative">
-              <FaBook className="absolute left-3 top-3 text-gray-400" />
-              <select
-                name="subject"
-                required
-                value={formData.subject}
-                onChange={handleChange}
-                className="pl-10 w-full p-3 border rounded-lg"
+          <div className="col-span-2 flex gap-2">
+            {genderOptions.map((g) => (
+              <label
+                key={g.value}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border cursor-pointer transition
+                ${formData.gender === g.value
+                    ? "bg-[#052954] text-white"
+                    : "hover:bg-[#052954]/5"
+                  }`}
               >
-                <option value="">Select Subject</option>
-                {subjectOptions.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
+                <input type="radio" name="gender" value={g.value} hidden onChange={handleChange} />
+                {g.icon} {g.label}
+              </label>
+            ))}
           </div>
 
-          {/* Phone */}
-          <div>
-            <label className="font-medium text-gray-700">Phone</label>
-            <div className="relative">
-              <FaPhone className="absolute left-3 top-3 text-gray-400" />
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="pl-10 w-full p-3 border rounded-lg"
-              />
-            </div>
-          </div>
+          <input type="date" name="dateOfBirth" className={input} onChange={handleChange} />
+          <input readOnly value={formData.age} placeholder="Age" className={`${input} bg-gray-100`} />
 
-          {/* Bio */}
-          <div className="md:col-span-2">
-            <label className="font-medium text-gray-700">Short Bio</label>
-            <textarea
-              name="bio"
-              rows="4"
-              value={formData.bio}
-              onChange={handleChange}
-              className="w-full p-3 border rounded-lg"
-              placeholder="Brief teacher profile..."
-            />
-          </div>
+          <Select name="religion" label="Religion *" options={religionOptions} onChange={handleChange} />
+        </Section>
 
-          {/* Photo */}
-          <div className="md:col-span-2 flex items-center gap-6">
-            <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+        {/* ===== PROFESSIONAL INFO ===== */}
+        <Section title="Professional Information" icon={<FaBriefcase />}>
+          <Select name="qualification" label="Qualification *" options={qualificationOptions} onChange={handleChange} />
+          <Select name="department" label="Department *" options={departmentOptions} onChange={handleChange} />
+          <Select name="subject" label="Subject *" options={subjectOptions} onChange={handleChange} />
+        </Section>
+
+        {/* ===== CONTACT INFO ===== */}
+        <Section title="Contact Information" icon={<FaEnvelope />}>
+          <input type="email" name="email" placeholder="Email Address *" required className={input} onChange={handleChange} />
+          <input name="phone" placeholder="Phone Number *" required className={input} onChange={handleChange} />
+        </Section>
+
+        {/* ===== BIO ===== */}
+        <Section title="Short Bio" icon={<FaUserGraduate />}>
+          <textarea
+            name="bio"
+            rows="4"
+            placeholder="Brief teacher profile..."
+            className="col-span-4 w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#052954]/30 outline-none"
+            onChange={handleChange}
+          />
+        </Section>
+
+        {/* ===== PHOTO ===== */}
+        <Section title="Teacher Photo" icon={<FaImage />}>
+          <div className="col-span-4 flex flex-col sm:flex-row items-center gap-6">
+            <div className="w-40 h-40 rounded-xl bg-gray-100 flex items-center justify-center overflow-hidden">
               {previewImage ? (
                 <img src={previewImage} alt="preview" className="w-full h-full object-cover" />
               ) : (
-                <FaUserTie className="text-5xl text-gray-400" />
+                <FaUserTie className="text-6xl text-gray-400" />
               )}
             </div>
 
-            <label className="cursor-pointer flex items-center gap-2 bg-gray-100 px-4 py-3 rounded-lg border">
-              <FaImage />
+            <label className="cursor-pointer bg-[#052954] text-white px-6 py-3 rounded-xl">
               Upload Photo
-              <input
-                type="file"
-                name="teacherPhoto"
-                accept="image/*"
-                onChange={handleChange}
-                className="hidden"
-              />
+              <input type="file" hidden name="teacherPhoto" accept="image/*" onChange={handleChange} />
             </label>
           </div>
+        </Section>
 
-          {/* Actions */}
-          <div className="md:col-span-2 flex gap-4 mt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-lg"
-            >
-              <FaSave /> {loading ? "Saving..." : "Save Teacher"}
-            </button>
+        {/* ===== ACTIONS ===== */}
+        <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 bg-[#ffa301] text-[#052954] py-4 rounded-xl font-semibold flex justify-center gap-2"
+          >
+            <FaSave /> {loading ? "Saving..." : "Register Teacher"}
+          </button>
 
-            <button
-              type="button"
-              onClick={handleReset}
-              className="flex-1 flex items-center justify-center gap-2 bg-gray-200 py-3 rounded-lg"
-            >
-              <FaRedo /> Reset
-            </button>
-          </div>
-
-        </form>
-      </div>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="flex-1 border border-[#052954] text-[#052954] py-4 rounded-xl flex justify-center gap-2"
+          >
+            <FaRedo /> Clear Form
+          </button>
+        </div>
+      </form>
     </div>
   );
 };
 
-export default TeacherForm;
+/* ===== REUSABLE COMPONENTS ===== */
+
+const Section = ({ title, icon, children }) => (
+  <div>
+    <div className="flex items-center gap-2 mb-4 text-[#052954] font-semibold">
+      {icon} {title}
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {children}
+    </div>
+  </div>
+);
+
+const Select = ({ name, label, options, onChange }) => (
+  <div className="relative">
+    <select
+      name={name}
+      onChange={onChange}
+      className="appearance-none w-full px-4 py-3 pr-10 rounded-xl border border-gray-300 text-sm
+      focus:ring-2 focus:ring-[#052954]/30 focus:border-[#052954] outline-none"
+    >
+      <option value="">{label}</option>
+      {options.map((opt) => (
+        <option key={opt}>{opt}</option>
+      ))}
+    </select>
+    <FaChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+  </div>
+);
+
+export default TeacherAdmission;

@@ -8,7 +8,11 @@ import Teachers from "./pages/TeacherPage/Teachers";
 import TeacherForm from "./pages/TeacherPage/TeacherForm";
 
 import MainDashboard from "./pages/MainDashboard";
-import Classes from "./pages/Parents";
+import Classes from "./pages/ParentPage/Parents";
+import ParentAdmission from "./pages/ParentPage/ParentAdmission";
+import Parents from "./pages/ParentPage/Parents";
+import AnnouncementForm from "./pages/AnnouncementsPage/Form";
+import ViewAnnouncements from "./pages/AnnouncementsPage/ViewAnnouncements";
 
 const MainPage = () => {
   const [activePage, setActivePage] = useState("dashboard");
@@ -30,6 +34,14 @@ const MainPage = () => {
         return <TeacherForm />;
       case "teachers":
         return <Teachers />;
+      case "parent-form":
+        return <ParentAdmission />;
+      case "parents":
+        return <Parents />
+      case "announce-form":
+        return <AnnouncementForm />;
+      case "announcements":
+        return <ViewAnnouncements />;
       case "classes":
         return <Classes />;
       default:

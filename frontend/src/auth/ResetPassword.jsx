@@ -293,7 +293,7 @@ const ResetPassword = () => {
                         required
                         value={formData.password}
                         onChange={(e) => handleChange('password', e.target.value)}
-                        className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           error && error.includes("Password") 
                             ? 'border-red-300 focus:ring-red-500' 
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -327,7 +327,7 @@ const ResetPassword = () => {
                         required
                         value={formData.confirmPassword}
                         onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                        className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           error && error.includes("match") 
                             ? 'border-red-300 focus:ring-red-500' 
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'

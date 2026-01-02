@@ -238,7 +238,7 @@ const ForgotPassword = () => {
                         required
                         value={email}
                         onChange={(e) => handleEmailChange(e.target.value)}
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           error 
                             ? 'border-red-300 focus:ring-red-500' 
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -265,7 +265,7 @@ const ForgotPassword = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 text-sm ${
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 ${
                       loading
                         ? "bg-[#ffa301]/70 cursor-not-allowed"
                         : "bg-gradient-to-r from-[#052954] to-[#041e42] hover:opacity-90 shadow-md hover:shadow-lg"

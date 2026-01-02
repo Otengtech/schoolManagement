@@ -325,7 +325,7 @@ const Login = () => {
                       value={formData.email}
                       onChange={(e) => handleChange('email', e.target.value)}
                       onBlur={() => handleBlur('email')}
-                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                         errors.email
                           ? 'border-red-300 focus:ring-red-500'
                           : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -359,7 +359,7 @@ const Login = () => {
                       value={formData.password}
                       onChange={(e) => handleChange('password', e.target.value)}
                       onBlur={() => handleBlur('password')}
-                      className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                      className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                         errors.password
                           ? 'border-red-300 focus:ring-red-500'
                           : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'

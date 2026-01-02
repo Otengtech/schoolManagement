@@ -263,11 +263,11 @@ const SuperAdminPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                     <p className="text-xs text-blue-200 mb-1">Total Admins</p>
-                    <p className="text-2xl font-bold text-[#ffa301]">24</p>
+                    <p className="text-2xl font-bold text-[#ffa301]">0</p>
                   </div>
                   <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                     <p className="text-xs text-blue-200 mb-1">Active Schools</p>
-                    <p className="text-2xl font-bold text-[#ffa301]">8</p>
+                    <p className="text-2xl font-bold text-[#ffa301]">0</p>
                   </div>
                 </div>
 
@@ -312,7 +312,7 @@ const SuperAdminPage = () => {
                         name="firstName"
                         value={adminData.firstName}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           errors.firstName
                             ? 'border-red-300 focus:ring-red-500'
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -339,7 +339,7 @@ const SuperAdminPage = () => {
                         name="lastName"
                         value={adminData.lastName}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           errors.lastName
                             ? 'border-red-300 focus:ring-red-500'
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -369,7 +369,7 @@ const SuperAdminPage = () => {
                         name="email"
                         value={adminData.email}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           errors.email
                             ? 'border-red-300 focus:ring-red-500'
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -396,7 +396,7 @@ const SuperAdminPage = () => {
                         name="phone"
                         value={adminData.phone}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           errors.phone
                             ? 'border-red-300 focus:ring-red-500'
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -426,7 +426,7 @@ const SuperAdminPage = () => {
                         name="school"
                         value={adminData.school}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           errors.school
                             ? 'border-red-300 focus:ring-red-500'
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -453,7 +453,7 @@ const SuperAdminPage = () => {
                         name="address"
                         value={adminData.address}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                           errors.address
                             ? 'border-red-300 focus:ring-red-500'
                             : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
@@ -529,7 +529,7 @@ const SuperAdminPage = () => {
                     <button
                       type="submit"
                       disabled={loading}
-                      className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 text-sm ${
+                      className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 ${
                         loading
                           ? "bg-[#ffa301]/70 cursor-not-allowed"
                           : "bg-gradient-to-r from-[#052954] to-[#041e42] hover:opacity-90 shadow-md hover:shadow-lg"

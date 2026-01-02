@@ -22,15 +22,18 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-      <ScrollToTop />
+        <ScrollToTop />
         <Routes>
-          {/* Public */}
+          {/* Public Routes */}
+          <Route path="/" element={<Navigate to="/login" />} /> {/* Home redirect */}
           <Route path="/login" element={<Login />} />
-          <Route path="/superAdmin" element={<SuperAdminPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/school" element={<CreateSchoolPage />} />
+          <Route path="/super-admin" element={<SuperAdminPage />} /> {/* Fixed: Use kebab-case for consistency */}
 
+          {/* Protected Routes */}
+          
           {/* Student */}
           <Route
             path="/student/*"
@@ -70,18 +73,34 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/*" element={<Navigate to="/login" />} />
 
-          {/* Default */}
-          <Route path="/superAdmin" element={<Navigate to="/superAdmin" />} />
+          {/* Super Admin - Protected */}
+          <Route
+            path="/super-admin/*"
+            element={
+              <ProtectedRoute allowedRoles={["superadmin"]}>
+                <SuperAdminPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 404 Page - Add if you have one */}
+          {/* <Route path="*" element={<NotFound />} /> */}
+
+          {/* Catch-all - redirect to login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         
         <ToastContainer
           position="top-right"
           autoClose={3000}
           newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
           pauseOnHover
+          theme="colored"
         />
       </BrowserRouter>
     </AuthProvider>

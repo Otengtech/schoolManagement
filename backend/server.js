@@ -6,43 +6,31 @@ dotenv.config();
 
 const app = express();
 
-// Define allowed origins array
-const allowedOrigins = [
-  "https://schoolmanageio.vercel.app",
-  "https://school-management-system-backend-three.vercel.app",
-  "http://localhost:5173"
-];
+// SIMPLE CORS - Let Vercel handle CORS headers
+app.use(cors({
+  origin: ["https://schoolmanageio.vercel.app", "http://localhost:5173"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-// Configure CORS
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      
-      console.error("Blocked by CORS:", origin);
-      return callback(new Error("Not allowed by CORS"), false);
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: [
-      "Content-Type", 
-      "Authorization", 
-      "Accept", 
-      "Origin", 
-      "X-Requested-With",
-      "X-Access-Token"
-    ],
-    exposedHeaders: ["Content-Range", "X-Content-Range"],
-    optionsSuccessStatus: 200
-  })
-);
+// Handle preflight explicitly for all routes
+app.options("*", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://schoolmanageio.vercel.app");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.status(200).send();
+});
 
-// Handle preflight requests (Express 4 can use "*")
-app.options("*", cors());
+// Add CORS headers manually as fallback
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://schoolmanageio.vercel.app");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  next();
+});
 
 // Multer config
 const upload = multer({
@@ -53,83 +41,37 @@ const upload = multer({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Test route to verify CORS is working
+// CORS test endpoint
 app.get("/cors-test", (req, res) => {
   res.json({
     success: true,
-    message: "CORS is configured properly",
+    message: "CORS is working!",
     origin: req.headers.origin,
+    headers: req.headers,
     timestamp: new Date().toISOString()
   });
 });
 
+// Login endpoint
 app.post("/auth/login", (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
   
-  console.log("Login attempt from:", req.headers.origin);
-  console.log("Email:", email);
+  console.log("Login attempt:", { email, role, origin: req.headers.origin });
   
-  // TODO: Add actual authentication logic here
+  // TODO: Add actual authentication logic
   res.json({
     success: true,
     message: "Login successful",
     user: {
+      id: "1",
       email: email,
-      token: "sample-jwt-token-here",
-      role: "admin"
+      name: "Test User",
+      role: role || "admin",
+      token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
     },
     origin: req.headers.origin,
     timestamp: new Date().toISOString()
   });
-});
-
-// Main route
-app.post("/", upload.single("profilePic"), (req, res) => {
-  try {
-    console.log("📥 Request received from origin:", req.headers.origin);
-    
-    const { firstName, lastName, email, phone, address, school } = req.body;
-
-    if (!firstName || !lastName || !email || !phone || !address || !school) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required"
-      });
-    }
-
-    const admin = {
-      id: Date.now(),
-      firstName,
-      lastName,
-      email,
-      phone,
-      address,
-      school,
-      profilePic: req.file
-        ? {
-          name: req.file.originalname,
-          type: req.file.mimetype,
-          size: req.file.size,
-        }
-        : null,
-      createdAt: new Date().toISOString(),
-    };
-
-    console.log("✅ Admin created:", admin);
-
-    return res.status(201).json({
-      success: true,
-      message: "Admin created successfully",
-      admin,
-    });
-  } catch (err) {
-    console.error("❌ Server error:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
 });
 
 // Root route
@@ -138,27 +80,13 @@ app.get("/", (req, res) => {
     success: true,
     message: "API Server is running",
     version: "1.0.0",
-    endpoints: {
-      corsTest: "GET /cors-test",
-      login: "POST /auth/login",
-      createAdmin: "POST /",
-    }
-  });
-});
-
-// Health check route
-app.get("/health", (req, res) => {
-  res.json({
-    success: true,
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    cors: "Configured for schoolmanageio.vercel.app",
+    endpoints: ["POST /auth/login", "GET /cors-test", "POST /"]
   });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 CORS enabled for origins:`);
-  allowedOrigins.forEach(origin => console.log(`   - ${origin}`));
+  console.log(`🌐 CORS configured for: https://schoolmanageio.vercel.app`);
 });

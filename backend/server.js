@@ -8,7 +8,9 @@ const app = express();
 
 // SIMPLE CORS - Let Vercel handle CORS headers
 app.use(cors({
-  origin: ["https://schoolmanageio.vercel.app", "http://localhost:5173"],
+  origin: ["https://school-management-system-backend-three.vercel.app",
+     "https://schoolmanageio.vercel.app",
+      "http://localhost:5173"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -55,9 +57,9 @@ app.get("/cors-test", (req, res) => {
 // Login endpoint
 app.post("/auth/login", (req, res) => {
   const { email, password, role } = req.body;
-  
+
   console.log("Login attempt:", { email, role, origin: req.headers.origin });
-  
+
   // TODO: Add actual authentication logic
   res.json({
     success: true,

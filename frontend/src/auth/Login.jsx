@@ -165,6 +165,13 @@ const Login = () => {
           "Student progress",
           "Lesson planning"
         ];
+      case "super-admin":
+        return [
+          "Manages entire system",
+          "Grade assignments",
+          "Student progress",
+          "Lesson planning"
+        ];
       case "student":
         return [
           "Course materials",
@@ -276,6 +283,7 @@ const Login = () => {
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {[
+                      { value: "super-admin", label: "Super Admin", icon: <FaShieldAlt /> },
                       { value: "admin", label: "Admin", icon: <FaShieldAlt /> },
                       { value: "teacher", label: "Teacher", icon: <FaChalkboardTeacher /> },
                       { value: "student", label: "Student", icon: <FaUserGraduate /> },

@@ -5,33 +5,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-app.use(cors())
 
 // Manual CORS middleware (most reliable for Express 5)
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    "https://schoolmanageio.vercel.app",
-    "https://school-management-system-backend-three.vercel.app", 
-    "http://localhost:5173"
-  ];
-  
-  const origin = req.headers.origin;
-  
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
-  
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});
+app.use(cors({
+  origin: "https://school-management-system-backend-three.vercel.app",
+}))
 
+  
+  // "https://schoolmanageio.vercel.app",
+  // "https://school-management-system-backend-three.vercel.app", 
+  // "http://localhost:5173"
 
 // Multer config
 const upload = multer({

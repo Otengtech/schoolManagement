@@ -1,103 +1,66 @@
 import express from "express";
-import cors from "cors";
 import multer from "multer";
 import dotenv from "dotenv";
-dotenv.config()
+dotenv.config();
 
-// Create Express app
 const app = express();
 
-// For production - allow your specific domains
-const allowedOrigins = [
-  "https://schoolmanageio.vercel.app",           // Your frontend production
-  "https://school-management-system-backend-three.vercel.app", // Your backend
-  "http://localhost:5173",                       // Local development
-];
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"],
-  maxAge: 86400
-}));
+// Manual CORS middleware (most reliable for Express 5)
+app.use((req, res, next) => {
+  const allowedOrigins = [
+    "https://schoolmanageio.vercel.app",
+    "https://school-management-system-backend-three.vercel.app", 
+    "http://localhost:5173"
+  ];
+  
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 
 // Multer config
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// Parse JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Main route
+// Routes... (same as before)
 app.post("/", upload.single("profilePic"), (req, res) => {
-  try {
-    console.log("📥 Request received");
-
-    const { firstName, lastName, email, phone, address, school } = req.body;
-
-    // Validation
-    if (!firstName || !lastName || !email || !phone || !address || !school) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required"
-      });
-    }
-
-    // Create admin object
-    const admin = {
-      id: Date.now(),
-      firstName,
-      lastName,
-      email,
-      phone,
-      address,
-      school,
-      profilePic: req.file
-        ? {
-          name: req.file.originalname,
-          type: req.file.mimetype,
-          size: req.file.size,
-        }
-        : null,
-      createdAt: new Date().toISOString(),
-    };
-
-    console.log("✅ Admin created:", admin);
-
-    return res.status(201).json({
-      success: true,
-      message: "Admin created successfully",
-      admin,
-    });
-  } catch (err) {
-    console.error("❌ Server error:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
+  // ... your route handler
 });
 
 app.post("/auth/login", (req, res) => {
   res.json({
     success: true,
-    message: "Login endpoint",
+    message: "Login successful",
     origin: req.headers.origin
   });
 });
 
-// GET route for testing
+// GET route
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Create Admin API is running",
-    endpoint: "POST /api/create-admin"
+    message: "API is running"
   });
 });
 
-const PORT = process.env.PORT || 5000; app.listen(PORT, () => { console.log(`🚀 Server running on port ${PORT}`); });
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});

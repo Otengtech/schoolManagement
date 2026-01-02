@@ -14,6 +14,7 @@ import Parent from "./pages/parent/ParentDashboard";
 import Admin from "./pages/admin/AdminPage";
 import Student from "./pages/student/StudentPage";
 import Teacher from "./pages/teacher/TeacherPage";
+import SuperAdminPage from "./pages/superAdmin/superAdminPage";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Routes>
           {/* Public */}
           <Route path="/login" element={<Login />} />
+          <Route path="/superAdmin" element={<SuperAdminPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/admin" element={<Admin />} />
@@ -29,14 +31,14 @@ function App() {
           <Route path="/teacher" element={<Teacher />} />
 
           {/* Student */}
-          {/* <Route
+          <Route
             path="/student/*"
             element={
               <ProtectedRoute allowedRoles={["student"]}>
                 <Student />
               </ProtectedRoute>
             }
-          /> */}
+          />
 
           {/* Parent */}
           <Route
@@ -67,10 +69,13 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/login/*" element={<Navigate to="/login" />} />
 
           {/* Default */}
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/superAdmin" element={<Navigate to="/superAdmin" />} />
         </Routes>
+        
         <ToastContainer
           position="top-right"
           autoClose={3000}

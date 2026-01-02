@@ -11,13 +11,14 @@ import {
   FaEye,
   FaEyeSlash,
   FaSignInAlt,
-  FaUserPlus,
   FaKey,
+  FaShieldAlt,
   FaChalkboardTeacher,
   FaUserGraduate,
   FaUserFriends,
-  FaShieldAlt,
-  FaExclamationCircle
+  FaExclamationCircle,
+  FaCrown,
+  FaCheckCircle
 } from "react-icons/fa";
 
 const Login = () => {
@@ -136,15 +137,50 @@ const Login = () => {
   const getRoleIcon = () => {
     switch (formData.role) {
       case "admin":
-        return <FaShieldAlt className="text-green-600" />;
+        return <FaShieldAlt className="text-[#ffa301]" />;
       case "teacher":
-        return <FaChalkboardTeacher className="text-green-600" />;
+        return <FaChalkboardTeacher className="text-[#ffa301]" />;
       case "student":
-        return <FaUserGraduate className="text-green-600" />;
+        return <FaUserGraduate className="text-[#ffa301]" />;
       case "parent":
-        return <FaUserFriends className="text-green-600" />;
+        return <FaUserFriends className="text-[#ffa301]" />;
       default:
-        return <FaUserTag className="text-green-600" />;
+        return <FaUserTag className="text-[#ffa301]" />;
+    }
+  };
+
+  const getRoleBenefits = () => {
+    switch (formData.role) {
+      case "admin":
+        return [
+          "System management",
+          "User administration",
+          "Analytics dashboard",
+          "Security configuration"
+        ];
+      case "teacher":
+        return [
+          "Class management",
+          "Grade assignments",
+          "Student progress",
+          "Lesson planning"
+        ];
+      case "student":
+        return [
+          "Course materials",
+          "Assignment submission",
+          "Grade tracking",
+          "Progress monitoring"
+        ];
+      case "parent":
+        return [
+          "Child progress tracking",
+          "Attendance monitoring",
+          "Communication portal",
+          "Fee management"
+        ];
+      default:
+        return [];
     }
   };
 
@@ -153,22 +189,25 @@ const Login = () => {
       <div className="w-full min-h-screen bg-white overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 h-full md:h-screen">
           {/* LEFT - Hero Section */}
-          <div className="bg-gradient-to-br from-green-600 to-green-800 p-6 md:p-16 text-white relative overflow-hidden">
+          <div className="bg-gradient-to-br from-[#052954] to-[#041e42] p-6 md:p-16 text-white relative overflow-hidden">
             {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-24 h-24 bg-green-400 rounded-full -translate-y-12 translate-x-12 opacity-20"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-400 rounded-full translate-y-16 -translate-x-16 opacity-20"></div>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400 rounded-full -translate-y-12 translate-x-12 opacity-20"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-400 rounded-full translate-y-16 -translate-x-16 opacity-20"></div>
             
             <div className="relative z-10 h-full flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-[#ffa301] to-[#ff8c00] shadow-lg">
+                  <FaCrown className="text-2xl" />
+                </div>
                 <h1 className="text-3xl md:text-5xl font-bold">Welcome Back</h1>
               </div>
               
-              <p className="text-sm md:text-base text-green-100 mb-6 max-w-md">
+              <p className="text-sm md:text-base text-blue-100 mb-6 max-w-md">
                 Select your role and log in to access your personalized dashboard.
               </p>
 
               {/* Role Preview Card */}
-              <div className={`bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 mb-6`}>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 mb-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 rounded-lg bg-white shadow-sm">
                     {getRoleIcon()}
@@ -178,36 +217,26 @@ const Login = () => {
                     <p className="text-xs text-white">Access all {formData.role} features</p>
                   </div>
                 </div>
-                <ul className="space-y-1 text-xs text-white">
-                  {formData.role === "admin" && (
-                    <>
-                      <li className="flex items-center gap-1">✓ System management</li>
-                      <li className="flex items-center gap-1">✓ User administration</li>
-                      <li className="flex items-center gap-1">✓ Analytics dashboard</li>
-                    </>
-                  )}
-                  {formData.role === "teacher" && (
-                    <>
-                      <li className="flex items-center gap-1">✓ Class management</li>
-                      <li className="flex items-center gap-1">✓ Grade assignments</li>
-                      <li className="flex items-center gap-1">✓ Student progress</li>
-                    </>
-                  )}
-                  {formData.role === "student" && (
-                    <>
-                      <li className="flex items-center gap-1">✓ Course materials</li>
-                      <li className="flex items-center gap-1">✓ Assignment submission</li>
-                      <li className="flex items-center gap-1">✓ Grade tracking</li>
-                    </>
-                  )}
-                  {formData.role === "parent" && (
-                    <>
-                      <li className="flex items-center gap-1">✓ Child progress</li>
-                      <li className="flex items-center gap-1">✓ Attendance tracking</li>
-                      <li className="flex items-center gap-1">✓ Communication</li>
-                    </>
-                  )}
+                <ul className="space-y-2 text-sm text-white">
+                  {getRoleBenefits().map((benefit, index) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#ffa301]"></div>
+                      {benefit}
+                    </li>
+                  ))}
                 </ul>
+              </div>
+
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <p className="text-xs text-blue-200 mb-1">Active Users</p>
+                  <p className="text-2xl font-bold text-[#ffa301]">1,234</p>
+                </div>
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <p className="text-xs text-blue-200 mb-1">Today's Logins</p>
+                  <p className="text-2xl font-bold text-[#ffa301]">89</p>
+                </div>
               </div>
 
               {/* Features */}
@@ -231,7 +260,7 @@ const Login = () => {
           {/* RIGHT - Login Form */}
           <div className="px-6 py-10 md:px-8 md:p-8 md:overflow-y-auto">
             <div className="max-w-md mx-auto">
-              <div className="text-center mb-6">
+              <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-gray-800 mb-1">Login</h2>
                 <p className="text-sm text-gray-600">Enter your credentials to continue</p>
               </div>
@@ -239,9 +268,9 @@ const Login = () => {
               <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 {/* ROLE SELECTION */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
                     <div className="flex items-center gap-2">
-                      <FaUserTag className="text-green-600" />
+                      <FaUserTag className="text-[#ffa301]" />
                       Select Role
                     </div>
                   </label>
@@ -256,15 +285,15 @@ const Login = () => {
                         key={option.value}
                         type="button"
                         onClick={() => handleChange('role', option.value)}
-                        className={`flex flex-col items-center justify-center p-2 rounded-lg border-2 transition-all duration-200 ${
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
                           formData.role === option.value
-                            ? "border-green-500 bg-green-50 text-green-700"
-                            : "border-gray-200 hover:border-green-300 hover:bg-green-50/50"
+                            ? "border-[#ffa301] bg-gradient-to-br from-yellow-50 to-yellow-100 text-[#ffa301]"
+                            : "border-gray-200 hover:border-[#ffa301]/50 hover:bg-yellow-50/50 text-gray-600"
                         } ${errors.role ? 'border-red-300' : ''}`}
                       >
-                        <div className={`text-base mb-1 ${
+                        <div className={`text-lg mb-2 ${
                           formData.role === option.value 
-                            ? "text-green-600" 
+                            ? "text-[#ffa301]" 
                             : "text-gray-500"
                         }`}>
                           {option.icon}
@@ -274,7 +303,7 @@ const Login = () => {
                     ))}
                   </div>
                   {errors.role && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                    <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
                       <FaExclamationCircle />
                       {errors.role}
                     </p>
@@ -285,7 +314,7 @@ const Login = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <div className="flex items-center gap-2">
-                      <FaEnvelope className="text-green-600" />
+                      <FaEnvelope className="text-[#ffa301]" />
                       Email Address
                     </div>
                   </label>
@@ -299,7 +328,7 @@ const Login = () => {
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
                         errors.email
                           ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-green-500 focus:border-transparent'
+                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
                       }`}
                       placeholder="you@example.com"
                     />
@@ -319,7 +348,7 @@ const Login = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <div className="flex items-center gap-2">
-                      <FaLock className="text-green-600" />
+                      <FaLock className="text-[#ffa301]" />
                       Password
                     </div>
                   </label>
@@ -333,7 +362,7 @@ const Login = () => {
                       className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all text-sm ${
                         errors.password
                           ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-green-500 focus:border-transparent'
+                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
                       }`}
                       placeholder="••••••••"
                     />
@@ -363,14 +392,14 @@ const Login = () => {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="rounded text-green-600 focus:ring-green-500 w-4 h-4"
+                      className="rounded text-[#ffa301] focus:ring-[#ffa301] w-4 h-4"
                     />
                     <span className="text-xs text-gray-600">Remember me</span>
                   </label>
                   <button
                     type="button"
                     onClick={() => navigate("/forgot-password")}
-                    className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700 hover:underline transition-colors"
+                    className="flex items-center gap-1 text-xs text-[#ffa301] hover:text-[#e59400] hover:underline transition-colors"
                   >
                     <FaKey className="text-xs" />
                     Forgot password?
@@ -378,27 +407,42 @@ const Login = () => {
                 </div>
 
                 {/* SUBMIT BUTTON */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 text-sm ${
-                    loading
-                      ? "bg-green-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-md hover:shadow-lg"
-                  }`}
-                >
-                  {loading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Logging in...
-                    </>
-                  ) : (
-                    <>
-                      <FaSignInAlt className="text-sm" />
-                      Login
-                    </>
-                  )}
-                </button>
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 text-sm ${
+                      loading
+                        ? "bg-[#ffa301]/70 cursor-not-allowed"
+                        : "bg-gradient-to-r from-[#052954] to-[#041e42] hover:opacity-90 shadow-md hover:shadow-lg"
+                    }`}
+                  >
+                    {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Logging in...
+                      </>
+                    ) : (
+                      <>
+                        <FaSignInAlt className="text-sm" />
+                        Login to Dashboard
+                      </>
+                    )}
+                  </button>
+                  
+                  <div className="text-center mt-4">
+                    <p className="text-xs text-gray-500">
+                      Don't have an account?{" "}
+                      <button
+                        type="button"
+                        onClick={() => navigate("/register")}
+                        className="text-[#ffa301] hover:text-[#e59400] font-medium hover:underline"
+                      >
+                        Contact Admin
+                      </button>
+                    </p>
+                  </div>
+                </div>
               </form>
             </div>
           </div>

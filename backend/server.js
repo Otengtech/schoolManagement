@@ -7,30 +7,20 @@ dotenv.config()
 // Create Express app
 const app = express();
 
+// For production - allow your specific domains
 const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5000",
-  "https://school-management-system-backend-three.vercel.app",
+  "https://schoolmanageio.vercel.app",           // Your frontend production
+  "https://school-management-system-backend-three.vercel.app", // Your backend
+  "http://localhost:5173",                       // Local development
 ];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      console.error("Blocked by CORS:", origin);
-      return callback(null, true); // allow anyway (as requested)
-    },
-    methods: ["GET", "POST", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
-app.options(/.*/, cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"],
+  maxAge: 86400
+}));
 
 // Multer config
 const upload = multer({
@@ -91,6 +81,14 @@ app.post("/", upload.single("profilePic"), (req, res) => {
       error: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
+});
+
+app.post("/auth/login", (req, res) => {
+  res.json({
+    success: true,
+    message: "Login endpoint",
+    origin: req.headers.origin
+  });
 });
 
 // GET route for testing

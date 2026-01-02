@@ -20,6 +20,7 @@ import {
   FaCrown,
   FaCheckCircle
 } from "react-icons/fa";
+import axios from "axios";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -73,7 +74,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+    
     // Validate all fields
     const validation = validateLoginForm(formData);
     
@@ -85,55 +86,106 @@ const Login = () => {
     }
 
     try {
-      const data = await loginUser({
+      console.log("Sending login request...");
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      // Direct axios call (or use the loginUser function)
+      const response = await axios.post(`${API_URL}/auth/login`, {
         email: formData.email.trim(),
         password: formData.password,
         role: formData.role
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 10000,
+        withCredentials: false
       });
+
+      console.log("Login successful:", response.data);
       
-      login(data);
+      // Store token and user data
+      const { token, user } = response.data;
+      
+      if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      
+      // If using AuthContext
+      if (login) {
+        login(response.data);
+      }
       
       // Show success message
-      toast.success(`Welcome back, ${data.user.name || data.user.email}!`);
+      toast.success(`Welcome back, ${user.name || user.email}!`);
       
-      navigate(`/${data.user.role}`);
+      // Navigate based on role
+      navigate(`/${user.role}`);
       
     } catch (err) {
+      console.error("Login error:", err);
+      
       // Handle different types of errors
       let errorMessage = "Login failed. Please check your credentials.";
       
-      if (err.response) {
-        switch (err.response.status) {
-          case 401:
-            errorMessage = "Invalid email or password";
-            break;
-          case 403:
-            errorMessage = "Access denied for this role";
-            break;
-          case 404:
-            errorMessage = "User not found";
-            break;
-          case 500:
-            errorMessage = "Server error. Please try again later";
-            break;
-          default:
-            errorMessage = err.response.data?.message || errorMessage;
+      if (axios.isAxiosError(err)) {
+        // Axios specific error
+        if (err.response) {
+          // Server responded with error status
+          console.error("Response error:", {
+            status: err.response.status,
+            data: err.response.data,
+            headers: err.response.headers
+          });
+          
+          switch (err.response.status) {
+            case 400:
+              errorMessage = err.response.data?.message || "Bad request";
+              break;
+            case 401:
+              errorMessage = "Invalid email or password";
+              break;
+            case 403:
+              errorMessage = "Access denied for this role";
+              break;
+            case 404:
+              errorMessage = "User not found or endpoint doesn't exist";
+              break;
+            case 422:
+              errorMessage = err.response.data?.errors?.[0]?.msg || "Validation error";
+              break;
+            case 500:
+              errorMessage = "Server error. Please try again later";
+              break;
+            default:
+              errorMessage = err.response.data?.message || `Error: ${err.response.status}`;
+          }
+          
+          // Set specific field errors if available from API
+          if (err.response.data?.errors) {
+            setErrors(err.response.data.errors);
+          }
+        } else if (err.request) {
+          // Request was made but no response received
+          console.error("No response received:", err.request);
+          errorMessage = "Network error. Please check your connection and server";
+        } else {
+          // Something happened in setting up the request
+          console.error("Request setup error:", err.message);
+          errorMessage = err.message;
         }
-      } else if (err.request) {
-        errorMessage = "Network error. Please check your connection";
+      } else {
+        // Non-axios error
+        errorMessage = err.message || "An unexpected error occurred";
       }
       
       toast.error(errorMessage);
       
-      // Set specific field errors if available from API
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      }
     } finally {
       setLoading(false);
     }
   };
-
   const getRoleIcon = () => {
     switch (formData.role) {
       case "admin":

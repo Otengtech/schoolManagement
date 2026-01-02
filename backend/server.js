@@ -8,13 +8,16 @@ const app = express();
 
 // Manual CORS middleware (most reliable for Express 5)
 app.use(cors({
-  origin: "https://school-management-system-backend-three.vercel.app",
+  origin: [
+    "https://schoolmanageio.vercel.app",
+    "https://school-management-system-backend-three.vercel.app",
+    "http://localhost:5173"
+  ],
+   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
+  optionsSuccessStatus: 200
 }))
-
-  
-  // "https://schoolmanageio.vercel.app",
-  // "https://school-management-system-backend-three.vercel.app", 
-  // "http://localhost:5173"
 
 // Multer config
 const upload = multer({

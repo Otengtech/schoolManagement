@@ -1,9 +1,11 @@
 import express from "express";
 import multer from "multer";
+import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
+app.use(cors())
 
 // Manual CORS middleware (most reliable for Express 5)
 app.use((req, res, next) => {
@@ -29,6 +31,7 @@ app.use((req, res, next) => {
   
   next();
 });
+
 
 // Multer config
 const upload = multer({

@@ -10,25 +10,26 @@ import ForgotPassword from "./auth/ForgotPassword";
 import ResetPassword from "./auth/ResetPassword";
 
 // dashboards
-import Parent from "./pages/parent/ParentDashboard";
+import Parent from "./pages/parent/ParentPage";
 import Admin from "./pages/admin/AdminPage";
 import Student from "./pages/student/StudentPage";
 import Teacher from "./pages/teacher/TeacherPage";
 import SuperAdminPage from "./pages/superAdmin/superAdminPage";
+import ScrollToTop from "./components/ScrollToTop";
+import CreateSchoolPage from "./pages/createSchool/SchoolPage";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+      <ScrollToTop />
         <Routes>
           {/* Public */}
           <Route path="/login" element={<Login />} />
           <Route path="/superAdmin" element={<SuperAdminPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/student" element={<Student />} />
-          <Route path="/teacher" element={<Teacher />} />
+          <Route path="/school" element={<CreateSchoolPage />} />
 
           {/* Student */}
           <Route
@@ -70,7 +71,7 @@ function App() {
             }
           />
           <Route
-            path="/login/*" element={<Navigate to="/login" />} />
+            path="/*" element={<Navigate to="/login" />} />
 
           {/* Default */}
           <Route path="/superAdmin" element={<Navigate to="/superAdmin" />} />

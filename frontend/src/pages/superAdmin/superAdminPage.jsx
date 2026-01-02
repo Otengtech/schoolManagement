@@ -117,10 +117,8 @@ const SuperAdminPage = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
-  console.log(adminData);
-  
 
   if (!validateForm()) {
     showToast('Please fix the form errors', 'error');
@@ -130,6 +128,20 @@ const SuperAdminPage = () => {
   setLoading(true);
 
   try {
+    const API_URL = import.meta.env.VITE_API_URL;
+    const BYPASS_AUTH = import.meta.env.VITE_BYPASS_AUTH === 'true';
+    
+    let token = null;
+    
+    if (!BYPASS_AUTH) {
+      token = localStorage.getItem('token');
+      if (!token) {
+        showToast('Please log in first', 'error');
+        setLoading(false);
+        return;
+      }
+    }
+
     const formData = new FormData();
     formData.append('firstName', adminData.firstName);
     formData.append('lastName', adminData.lastName);
@@ -138,22 +150,24 @@ const SuperAdminPage = () => {
     formData.append('address', adminData.address);
     formData.append('school', adminData.school);
     
-
     if (adminData.profilePic instanceof File) {
       formData.append('profilePic', adminData.profilePic);
     }
 
-    const API_URL = import.meta.env.VITE_API_URL
-    const response = await axios.post(`${API_URL}/aPI/create-admin`,
+    const headers = {
+      'Content-Type': 'multipart/form-data',
+    };
+    
+    if (token && !BYPASS_AUTH) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await axios.post(`${API_URL}/create-admin`,
       formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-       // withCredentials: true, // optional (use if auth cookies)
-      }
+      { headers }
     );
 
+    // Reset form and show success
     setAdminData({
       firstName: '',
       lastName: '',
@@ -166,20 +180,32 @@ const SuperAdminPage = () => {
     setImagePreview('');
 
     showToast('Administrator created successfully!', 'success');
-    console.log('Server response:', response.data);
 
   } catch (error) {
-    console.error('Error creating admin:', error);
-
-    showToast(
-      error.response?.data?.message || 'Failed to create admin',
-      'error'
-    );
+    console.error('Error:', error.response?.data || error.message);
+    
+    // If it's a CORS error, show specific message
+    if (error.response?.status === 500 && 
+        error.response.data?.includes?.('CORS')) {
+      showToast(
+        `CORS Error: Backend needs to add 'http://localhost:5173' to allowed origins`,
+        'error'
+      );
+    }
+    // If it's auth error
+    else if (error.response?.status === 401 || error.response?.status === 403) {
+      showToast('Authentication required. Please log in as super admin.', 'error');
+    }
+    else {
+      showToast(
+        error.response?.data?.message || 'Failed to create admin',
+        'error'
+      );
+    }
   } finally {
     setLoading(false);
   }
 };
-
 
   // Toast Notification Component
   const Toast = ({ message, type, onClose }) => {

@@ -22,7 +22,6 @@ const TeacherAdmission = () => {
   const [previewImage, setPreviewImage] = useState(null);
 
   const [formData, setFormData] = useState({
-    teacherId: "",
     firstName: "",
     lastName: "",
     gender: "",
@@ -38,7 +37,7 @@ const TeacherAdmission = () => {
     teacherPhoto: null,
   });
 
-  /* ---------------- OPTIONS ---------------- */
+
   const genderOptions = [
     { value: "male", label: "Male", icon: <FaMars /> },
     { value: "female", label: "Female", icon: <FaVenus /> },

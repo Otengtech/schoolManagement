@@ -19,6 +19,8 @@ app.use(cors({
   optionsSuccessStatus: 200
 }))
 
+app.options(/.*/, cors())
+
 // Multer config
 const upload = multer({
   storage: multer.memoryStorage(),

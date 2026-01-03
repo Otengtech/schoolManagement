@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import TopNavbar from "./components/TopNavbar";
 
@@ -13,10 +13,30 @@ import ParentAdmission from "./pages/ParentPage/ParentAdmission";
 import Parents from "./pages/ParentPage/Parents";
 import AnnouncementForm from "./pages/AnnouncementsPage/Form";
 import ViewAnnouncements from "./pages/AnnouncementsPage/ViewAnnouncements";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const MainPage = () => {
   const [activePage, setActivePage] = useState("dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Verify user is admin
+    if (user?.role !== 'admin') {
+      toast.error('Access denied. Admin privileges required.');
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);

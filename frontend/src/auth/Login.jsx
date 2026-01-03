@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../api/auth";
+import { authService } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { validateLoginForm } from "../utils/validators";
 import {
   FaEnvelope,
   FaLock,
@@ -18,37 +17,56 @@ import {
   FaUserFriends,
   FaExclamationCircle,
   FaCrown,
-  FaCheckCircle
+  FaCheckCircle,
+  FaSpinner
 } from "react-icons/fa";
-import axios from "axios";
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    role: "admin",
+    role: "super-admin",
   });
-  const [errors, setErrors] = useState({});
+  
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+    role: "",
+  });
+  
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+    role: false,
+  });
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear field-specific error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+  // Load remembered credentials on component mount
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    const rememberedRole = localStorage.getItem('rememberedRole');
+    
+    if (rememberedEmail) {
+      setFormData(prev => ({
+        ...prev,
+        email: rememberedEmail,
+        role: rememberedRole || 'super-admin'
+      }));
+      setRememberMe(true);
     }
-  };
-  
+  }, []);
+
+  // Validation rules
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const validateField = (field, value) => {
-    switch (field) {
+  const validateField = (name, value) => {
+    switch (name) {
       case 'email':
-        if (!value) return "Email is required";
+        if (!value.trim()) return "Email is required";
         if (!emailRegex.test(value)) return "Please enter a valid email address";
         return "";
       
@@ -59,6 +77,9 @@ const Login = () => {
       
       case 'role':
         if (!value) return "Please select a role";
+        if (!['super-admin', 'admin', 'teacher', 'student', 'parent'].includes(value)) {
+          return "Please select a valid role";
+        }
         return "";
       
       default:
@@ -66,48 +87,98 @@ const Login = () => {
     }
   };
 
-  const handleBlur = (field) => {
-    const error = validateField(field, formData[field]);
-    setErrors(prev => ({ ...prev, [field]: error }));
+  // Handle input changes
+  const handleChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Validate on change if field has been touched
+    if (touched[name]) {
+      const error = validateField(name, value);
+      setErrors(prev => ({ ...prev, [name]: error }));
+    }
   };
 
-// In your frontend
+  // Handle field blur
+  const handleBlur = (name) => {
+    setTouched(prev => ({ ...prev, [name]: true }));
+    const error = validateField(name, formData[name]);
+    setErrors(prev => ({ ...prev, [name]: error }));
+  };
+
+  // Validate entire form
+  const validateForm = () => {
+    const newErrors = {
+      email: validateField('email', formData.email),
+      password: validateField('password', formData.password),
+      role: validateField('role', formData.role),
+    };
+    
+    setErrors(newErrors);
+    setTouched({
+      email: true,
+      password: true,
+      role: true,
+    });
+    
+    return !Object.values(newErrors).some(error => error !== "");
+  };
+
+// In Login.jsx handleSubmit function
 const handleSubmit = async (e) => {
   e.preventDefault();
-  setLoading(true);
   
-  try {
-    console.log("Sending login request...");
-    const API_URL = import.meta.env.VITE_API_URL || 'https://school-management-system-backend-three.vercel.app';
-    
-    const response = await axios.post(`${API_URL}/auth/login`, {
-      email: formData.email.trim(),
-      password: formData.password,
-      role: formData.role
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      // REMOVE withCredentials if not using cookies
-      withCredentials: false,
-      timeout: 15000
-    });
-
-    console.log("Login response:", response.data);
-    
-    // Handle response...
-    
-  } catch (error) {
-    console.error("Full error:", error);
-    // Handle error...
-  } finally {
-    setLoading(false);
+  if (!validateForm()) {
+    toast.error('Please fix the form errors');
+    return;
   }
+
+  setLoading(true);
+
+  // Handle "Remember Me"
+  if (rememberMe) {
+    localStorage.setItem('rememberedEmail', formData.email);
+    localStorage.setItem('rememberedRole', formData.role);
+  } else {
+    localStorage.removeItem('rememberedEmail');
+    localStorage.removeItem('rememberedRole');
+  }
+
+  const result = await login(formData.email, formData.password, formData.role);
+  
+  if (result.success) {
+    // Check role from response (not from form)
+    if (result.role === 'super-admin') {
+      // Redirect super-admin to create school page
+      navigate('/create-school');
+    } else {
+      // For other roles, go to their respective dashboards
+      switch (result.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'teacher':
+          navigate('/teacher');
+          break;
+        case 'student':
+          navigate('/student');
+          break;
+        case 'parent':
+          navigate('/parent');
+          break;
+        default:
+          navigate('/login');
+      }
+    }
+  }
+  
+  setLoading(false);
 };
 
+  // Get role icon
   const getRoleIcon = () => {
     switch (formData.role) {
+      case "super-admin":
+        return <FaCrown className="text-[#ffa301]" />;
       case "admin":
         return <FaShieldAlt className="text-[#ffa301]" />;
       case "teacher":
@@ -121,11 +192,19 @@ const handleSubmit = async (e) => {
     }
   };
 
+  // Get role benefits
   const getRoleBenefits = () => {
     switch (formData.role) {
+      case "super-admin":
+        return [
+          "Full system control",
+          "Manage all schools",
+          "User administration",
+          "System configuration"
+        ];
       case "admin":
         return [
-          "System management",
+          "School management",
           "User administration",
           "Analytics dashboard",
           "Security configuration"
@@ -133,13 +212,6 @@ const handleSubmit = async (e) => {
       case "teacher":
         return [
           "Class management",
-          "Grade assignments",
-          "Student progress",
-          "Lesson planning"
-        ];
-      case "super-admin":
-        return [
-          "Manages entire system",
           "Grade assignments",
           "Student progress",
           "Lesson planning"
@@ -163,89 +235,87 @@ const handleSubmit = async (e) => {
     }
   };
 
+  // Role options for buttons
+  const roleOptions = [
+    { value: "super-admin", label: "Super", icon: <FaCrown /> },
+    { value: "admin", label: "Admin", icon: <FaShieldAlt /> },
+    { value: "teacher", label: "Teacher", icon: <FaChalkboardTeacher /> },
+    { value: "student", label: "Student", icon: <FaUserGraduate /> },
+    { value: "parent", label: "Parent", icon: <FaUserFriends /> }
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full min-h-screen bg-white overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 h-full md:h-screen">
-          {/* LEFT - Hero Section */}
+          {/* Left Hero Section */}
           <div className="bg-gradient-to-br from-[#052954] to-[#041e42] p-6 md:p-16 text-white relative overflow-hidden">
-            {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400 rounded-full -translate-y-12 translate-x-12 opacity-20"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-400 rounded-full translate-y-16 -translate-x-16 opacity-20"></div>
-            
             <div className="relative z-10 h-full flex flex-col justify-center">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-[#ffa301] to-[#ff8c00] shadow-lg">
-                  <FaCrown className="text-2xl" />
-                </div>
-                <h1 className="text-3xl md:text-5xl font-bold">Welcome Back</h1>
-              </div>
-              
-              <p className="text-sm md:text-base text-blue-100 mb-6 max-w-md">
-                Select your role and log in to access your personalized dashboard.
-              </p>
-
-              {/* Role Preview Card */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 mb-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 rounded-lg bg-white shadow-sm">
+              <div className="mb-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-[#ffa301] to-[#ff8c00] shadow-lg">
                     {getRoleIcon()}
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg capitalize text-gray-200">{formData.role} Dashboard</h3>
-                    <p className="text-xs text-white">Access all {formData.role} features</p>
+                    <h1 className="text-3xl md:text-4xl font-bold mb-1">School Management</h1>
+                    <p className="text-sm text-blue-100">Secure Login Portal</p>
                   </div>
                 </div>
-                <ul className="space-y-2 text-sm text-white">
-                  {getRoleBenefits().map((benefit, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#ffa301]"></div>
-                      {benefit}
-                    </li>
-                  ))}
-                </ul>
+                
+                <p className="text-sm md:text-base text-blue-100 mb-6 max-w-md">
+                  Select your role and log in to access your personalized dashboard.
+                </p>
+                
+                {/* Role Benefits Card */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 rounded-lg bg-white shadow-sm">
+                      {getRoleIcon()}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg capitalize text-gray-200">
+                        {formData.role.replace('-', ' ')} Dashboard
+                      </h3>
+                      <p className="text-xs text-white">Access all {formData.role} features</p>
+                    </div>
+                  </div>
+                  
+                  <ul className="space-y-3 text-sm text-white">
+                    {getRoleBenefits().map((benefit, index) => (
+                      <li key={index} className="flex items-start gap-3">
+                        <FaCheckCircle className="text-[#ffa301] mt-0.5 flex-shrink-0" />
+                        <span>{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <p className="text-xs text-blue-200 mb-1">Active Users</p>
-                  <p className="text-2xl font-bold text-[#ffa301]">1,234</p>
-                </div>
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <p className="text-xs text-blue-200 mb-1">Today's Logins</p>
-                  <p className="text-2xl font-bold text-[#ffa301]">89</p>
-                </div>
-              </div>
-
-              {/* Features */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-white/20 rounded-lg">
-                    <FaUserTag className="text-xs" />
+              {/* Security Info */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-white/10">
+                    <FaLock className="text-[#ffa301]" />
                   </div>
-                  <span className="text-xs">Multi-role Access</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-white/20 rounded-lg">
-                    <FaLock className="text-xs" />
+                  <div>
+                    <p className="font-medium">256-bit SSL Encryption</p>
+                    <p className="text-xs text-blue-100">Your data is securely protected</p>
                   </div>
-                  <span className="text-xs">Secure Login</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* RIGHT - Login Form */}
+          {/* Right Login Form */}
           <div className="px-6 py-10 md:px-8 md:p-8 md:overflow-y-auto">
             <div className="max-w-md mx-auto">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-1">Login</h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">Login</h2>
                 <p className="text-sm text-gray-600">Enter your credentials to continue</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                {/* ROLE SELECTION */}
+                {/* Role Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     <div className="flex items-center gap-2">
@@ -253,25 +323,24 @@ const handleSubmit = async (e) => {
                       Select Role
                     </div>
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {[
-                      { value: "super-admin", label: "Super Admin", icon: <FaShieldAlt /> },
-                      { value: "admin", label: "Admin", icon: <FaShieldAlt /> },
-                      { value: "teacher", label: "Teacher", icon: <FaChalkboardTeacher /> },
-                      { value: "student", label: "Student", icon: <FaUserGraduate /> },
-                      { value: "parent", label: "Parent", icon: <FaUserFriends /> }
-                    ].map((option) => (
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    {roleOptions.map((option) => (
                       <button
                         key={option.value}
                         type="button"
                         onClick={() => handleChange('role', option.value)}
+                        onBlur={() => handleBlur('role')}
+                        disabled={loading}
                         className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
                           formData.role === option.value
-                            ? "border-[#ffa301] bg-gradient-to-br from-yellow-50 to-yellow-100 text-[#ffa301]"
+                            ? "border-[#ffa301] bg-gradient-to-br from-yellow-50 to-yellow-100 text-[#ffa301] shadow-sm"
                             : "border-gray-200 hover:border-[#ffa301]/50 hover:bg-yellow-50/50 text-gray-600"
-                        } ${errors.role ? 'border-red-300' : ''}`}
+                        } ${errors.role && touched.role ? 'border-red-300' : ''} ${
+                          loading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
-                        <div className={`text-lg mb-2 ${
+                        <div className={`text-lg mb-1 ${
                           formData.role === option.value 
                             ? "text-[#ffa301]" 
                             : "text-gray-500"
@@ -282,15 +351,16 @@ const handleSubmit = async (e) => {
                       </button>
                     ))}
                   </div>
-                  {errors.role && (
+                  
+                  {errors.role && touched.role && (
                     <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
-                      <FaExclamationCircle />
+                      <FaExclamationCircle className="text-xs" />
                       {errors.role}
                     </p>
                   )}
                 </div>
 
-                {/* EMAIL */}
+                {/* Email Input */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <div className="flex items-center gap-2">
@@ -298,33 +368,37 @@ const handleSubmit = async (e) => {
                       Email Address
                     </div>
                   </label>
+                  
                   <div className="relative">
                     <input
                       type="email"
+                      name="email"
                       required
                       value={formData.email}
                       onChange={(e) => handleChange('email', e.target.value)}
                       onBlur={() => handleBlur('email')}
-                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
-                        errors.email
-                          ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
-                      }`}
+                      disabled={loading}
+                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                        errors.email && touched.email
+                          ? 'border-red-300 focus:ring-red-500 bg-red-50'
+                          : 'border-gray-300 focus:ring-[#ffa301]'
+                      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       placeholder="you@example.com"
                     />
                     <FaEnvelope className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-sm ${
-                      errors.email ? 'text-red-400' : 'text-gray-400'
-                    }`} />
+                      errors.email && touched.email ? 'text-red-400' : 'text-gray-400'
+                    } ${loading ? 'opacity-50' : ''}`} />
                   </div>
-                  {errors.email && (
+                  
+                  {errors.email && touched.email && (
                     <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <FaExclamationCircle />
+                      <FaExclamationCircle className="text-xs" />
                       {errors.email}
                     </p>
                   )}
                 </div>
 
-                {/* PASSWORD */}
+                {/* Password Input */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     <div className="flex items-center gap-2">
@@ -332,66 +406,79 @@ const handleSubmit = async (e) => {
                       Password
                     </div>
                   </label>
+                  
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
+                      name="password"
                       required
                       value={formData.password}
                       onChange={(e) => handleChange('password', e.target.value)}
                       onBlur={() => handleBlur('password')}
-                      className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
-                        errors.password
-                          ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
-                      }`}
+                      disabled={loading}
+                      className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                        errors.password && touched.password
+                          ? 'border-red-300 focus:ring-red-500 bg-red-50'
+                          : 'border-gray-300 focus:ring-[#ffa301]'
+                      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       placeholder="••••••••"
                     />
                     <FaLock className={`absolute left-3 top-1/2 transform -translate-y-1/2 text-sm ${
-                      errors.password ? 'text-red-400' : 'text-gray-400'
-                    }`} />
+                      errors.password && touched.password ? 'text-red-400' : 'text-gray-400'
+                    } ${loading ? 'opacity-50' : ''}`} />
+                    
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
+                      disabled={loading}
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
                   </div>
-                  {errors.password && (
+                  
+                  {errors.password && touched.password && (
                     <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <FaExclamationCircle />
+                      <FaExclamationCircle className="text-xs" />
                       {errors.password}
                     </p>
                   )}
                 </div>
 
-                {/* REMEMBER ME & FORGOT PASSWORD */}
-                <div className="flex justify-between items-start sm:items-center gap-3">
+                {/* Remember Me & Forgot Password */}
+                <div className="flex justify-between items-center">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
+                      disabled={loading}
                       className="rounded text-[#ffa301] focus:ring-[#ffa301] w-4 h-4"
                     />
-                    <span className="text-xs text-gray-600">Remember me</span>
+                    <span className={`text-sm ${loading ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Remember me
+                    </span>
                   </label>
+                  
                   <button
                     type="button"
                     onClick={() => navigate("/forgot-password")}
-                    className="flex items-center gap-1 text-xs text-[#ffa301] hover:text-[#e59400] hover:underline transition-colors"
+                    className={`flex items-center gap-1 text-sm hover:underline transition-colors ${
+                      loading ? 'text-gray-400 cursor-not-allowed' : 'text-[#ffa301] hover:text-[#e59400]'
+                    }`}
+                    disabled={loading}
                   >
                     <FaKey className="text-xs" />
                     Forgot password?
                   </button>
                 </div>
 
-                {/* SUBMIT BUTTON */}
+                {/* Submit Button */}
                 <div className="pt-4">
                   <button
                     type="submit"
                     disabled={loading}
-                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 text-sm ${
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 ${
                       loading
                         ? "bg-[#ffa301]/70 cursor-not-allowed"
                         : "bg-gradient-to-r from-[#052954] to-[#041e42] hover:opacity-90 shadow-md hover:shadow-lg"
@@ -399,26 +486,31 @@ const handleSubmit = async (e) => {
                   >
                     {loading ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Logging in...
+                        <FaSpinner className="animate-spin" />
+                        <span>Authenticating...</span>
                       </>
                     ) : (
                       <>
-                        <FaSignInAlt className="text-sm" />
-                        Login to Dashboard
+                        <FaSignInAlt />
+                        <span>Login to Dashboard</span>
                       </>
                     )}
                   </button>
                   
                   <div className="text-center mt-4">
-                    <p className="text-xs text-gray-500">
-                      Don't have an account?{" "}
+                    <p className={`text-sm ${loading ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Need access?{" "}
                       <button
                         type="button"
-                        onClick={() => navigate("/register")}
-                        className="text-[#ffa301] hover:text-[#e59400] font-medium hover:underline"
+                        onClick={() => navigate("/contact")}
+                        className={`font-medium hover:underline ${
+                          loading 
+                            ? 'text-gray-400 cursor-not-allowed' 
+                            : 'text-[#ffa301] hover:text-[#e59400]'
+                        }`}
+                        disabled={loading}
                       >
-                        Contact Admin
+                        Contact Administrator
                       </button>
                     </p>
                   </div>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaSchool,
   FaMapMarkerAlt,
@@ -9,50 +10,58 @@ import {
   FaCheckCircle,
   FaExclamationTriangle,
   FaExclamationCircle,
-  FaCrown
-} from 'react-icons/fa';
-import axios from "axios"
+  FaCrown,
+} from "react-icons/fa";
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 
 const CreateSchoolPage = () => {
   const [schoolData, setSchoolData] = useState({
-    name: '',
-    code: '',
-    email: '',
-    phone: '',
-    address: ''
+    name: "",
+    code: "",
+    email: "",
+    phone: "",
+    address: "",
   });
-
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [toast, setToast] = useState(null);
 
-  const showToast = (message, type = 'info') => {
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
+
+  const showToast = (message, type = "info") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!schoolData.name.trim()) newErrors.name = 'School name is required';
-    if (!schoolData.code.trim()) newErrors.code = 'School code is required';
-    
+
+    if (!schoolData.name.trim()) newErrors.name = "School name is required";
+    if (!schoolData.code.trim()) newErrors.code = "School code is required";
+
     if (!schoolData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(schoolData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = "Email is invalid";
     }
-    
+
     if (!schoolData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
+      newErrors.phone = "Phone number is required";
     } else if (!/^0[0-9]{9}$/.test(schoolData.phone)) {
-      newErrors.phone = 'Phone must be 10 digits starting with 0';
+      newErrors.phone = "Phone must be 10 digits starting with 0";
     }
-    
-    if (!schoolData.address.trim()) newErrors.address = 'Address is required';
-    
+
+    if (!schoolData.address.trim()) newErrors.address = "Address is required";
+
     setErrors(newErrors);
-    
+
     // Clear errors after 5 seconds
     setTimeout(() => {
       setErrors({});
@@ -63,72 +72,119 @@ const CreateSchoolPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setSchoolData(prev => ({
+    setSchoolData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    
+
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log(schoolData);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validateForm()) {
+    showToast("Please fix the form errors", "error");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const API_URL = "https://school-management-system-backend-three.vercel.app";
+
+    // Axios interceptor will automatically add the token!
+    const response = await axios.post(
+      `${API_URL}/create-school`,
+      schoolData
+      // No need for manual headers - AuthContext interceptor handles it
+    );
+
+    // Reset form
+    setSchoolData({
+      name: "",
+      code: "",
+      email: "",
+      phone: "",
+      address: "",
+    });
+
+    showToast("School created successfully!", "success");
     
-    if (!validateForm()) {
-      showToast('Please fix the form errors', 'error');
-      return;
+    // DEBUG: Log the full response
+    console.log("✅ School created response:", response.data);
+    console.log("📋 Full response object:", response);
+
+    // Get the created school ID - TRY DIFFERENT PATHS
+    let createdSchoolId = null;
+    
+    if (response.data._id) {
+      createdSchoolId = response.data._id; // Direct _id
+      console.log("📌 Found school ID at response.data._id:", createdSchoolId);
+    } else if (response.data.school?._id) {
+      createdSchoolId = response.data.school._id; // Nested school._id
+      console.log("📌 Found school ID at response.data.school._id:", createdSchoolId);
+    } else if (response.data.schoolId) {
+      createdSchoolId = response.data.schoolId; // schoolId field
+      console.log("📌 Found school ID at response.data.schoolId:", createdSchoolId);
+    } else if (response.data.data?._id) {
+      createdSchoolId = response.data.data._id; // Nested in data object
+      console.log("📌 Found school ID at response.data.data._id:", createdSchoolId);
+    } else {
+      // If we can't find it, try to extract from the response
+      console.log("❌ Could not find school ID. Full response:", JSON.stringify(response.data, null, 2));
     }
 
-    setLoading(true);
+    // Store school ID for creating admin
+    if (createdSchoolId) {
+      localStorage.setItem("createdSchoolId", createdSchoolId);
+      console.log("💾 Saved school ID to localStorage:", createdSchoolId);
+      
+      // Also verify it was saved
+      const savedId = localStorage.getItem("createdSchoolId");
+      console.log("🔍 Verified saved school ID:", savedId);
+    } else {
+      console.error("❌ No school ID found to save!");
+      showToast("School created but ID not found. Contact support.", "error");
+    }
 
-    try {
-      const API_URL = import.meta.env.VITE_API_URL
-      const response = await axios.post(`${API_URL}/api/schools/create`,
-        schoolData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+    // Redirect to create admin page after 2 seconds
+    setTimeout(() => {
+      navigate("/create-admin");
+    }, 2000);
+  } catch (error) {
+    console.error("Error creating school:", error);
 
-      // Reset form
-      setSchoolData({
-        name: '',
-        code: '',
-        email: '',
-        phone: '',
-        address: ''
-      });
-
-      showToast('School created successfully!', 'success');
-      console.log('Server response:', response.data);
-
-    } catch (error) {
-      console.error('Error creating school:', error);
+    if (error.response?.status === 401) {
+      showToast("Session expired. Please login again.", "error");
+      logout();
+      navigate("/login");
+    } else {
       showToast(
-        error.response?.data?.message || 'Failed to create school',
-        'error'
+        error.response?.data?.message || "Failed to create school",
+        "error"
       );
-    } finally {
-      setLoading(false);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Toast Notification Component
   const Toast = ({ message, type, onClose }) => {
-    const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
-    const Icon = type === 'success' ? FaCheckCircle : FaExclamationTriangle;
+    const bgColor = type === "success" ? "bg-green-500" : "bg-red-500";
+    const Icon = type === "success" ? FaCheckCircle : FaExclamationTriangle;
 
     return (
       <div className="fixed top-4 right-4 z-50 animate-fade-in-down">
-        <div className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 max-w-md backdrop-blur-sm bg-opacity-90`}>
+        <div
+          className={`${bgColor} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 max-w-md backdrop-blur-sm bg-opacity-90`}
+        >
           <Icon className="h-5 w-5 flex-shrink-0" />
           <span className="font-medium">{message}</span>
           <button
@@ -145,7 +201,13 @@ const CreateSchoolPage = () => {
   return (
     <>
       {/* Toast Notification */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
 
       <div className="flex min-h-screen items-center justify-center">
         <div className="w-full min-h-screen bg-white overflow-hidden">
@@ -155,7 +217,7 @@ const CreateSchoolPage = () => {
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-24 h-24 bg-blue-400 rounded-full -translate-y-12 translate-x-12 opacity-20"></div>
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-400 rounded-full translate-y-16 -translate-x-16 opacity-20"></div>
-              
+
               <div className="relative z-10 h-full flex flex-col justify-center">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-[#ffa301] to-[#ff8c00] shadow-lg">
@@ -163,9 +225,10 @@ const CreateSchoolPage = () => {
                   </div>
                   <h1 className="text-3xl md:text-5xl font-bold">Create School</h1>
                 </div>
-                
+
                 <p className="text-sm md:text-base text-blue-100 mb-6 max-w-md">
-                  Register a new educational institution with the essential details.
+                  Register a new educational institution with the essential
+                  details.
                 </p>
 
                 {/* Features Preview Card */}
@@ -175,7 +238,9 @@ const CreateSchoolPage = () => {
                       <FaCrown className="text-[#ffa301] text-lg" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg text-gray-200">Basic School Setup</h3>
+                      <h3 className="font-bold text-lg text-gray-200">
+                        Basic School Setup
+                      </h3>
                       <p className="text-xs text-white">Essential information only</p>
                     </div>
                   </div>
@@ -217,8 +282,12 @@ const CreateSchoolPage = () => {
             <div className="px-6 py-10 md:px-8 md:p-8 md:overflow-y-auto">
               <div className="max-w-md mx-auto">
                 <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold text-gray-800 mb-1">New School</h2>
-                  <p className="text-sm text-gray-600">Enter the school details below</p>
+                  <h2 className="text-3xl font-bold text-gray-800 mb-1">
+                    New School
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    Enter the school details below
+                  </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -237,8 +306,8 @@ const CreateSchoolPage = () => {
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                         errors.name
-                          ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-[#ffa301] focus:border-transparent"
                       }`}
                       placeholder="e.g., KTU"
                     />
@@ -265,8 +334,8 @@ const CreateSchoolPage = () => {
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                         errors.code
-                          ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-[#ffa301] focus:border-transparent"
                       }`}
                       placeholder="e.g., KTU01"
                     />
@@ -293,8 +362,8 @@ const CreateSchoolPage = () => {
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                         errors.email
-                          ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-[#ffa301] focus:border-transparent"
                       }`}
                       placeholder="e.g., info@ktu.edu"
                     />
@@ -321,8 +390,8 @@ const CreateSchoolPage = () => {
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                         errors.phone
-                          ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-[#ffa301] focus:border-transparent"
                       }`}
                       placeholder="e.g., 024xxxxxxx"
                     />
@@ -349,8 +418,8 @@ const CreateSchoolPage = () => {
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-all ${
                         errors.address
-                          ? 'border-red-300 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-[#ffa301] focus:border-transparent'
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-[#ffa301] focus:border-transparent"
                       }`}
                       placeholder="e.g., Some Street"
                     />
@@ -385,9 +454,10 @@ const CreateSchoolPage = () => {
                         </>
                       )}
                     </button>
-                    
+
                     <p className="text-center text-xs text-gray-500 mt-3">
-                      School will be registered in the system with provided details.
+                      School will be registered in the system with provided
+                      details.
                     </p>
                   </div>
                 </form>

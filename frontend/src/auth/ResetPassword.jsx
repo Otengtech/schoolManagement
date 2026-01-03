@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { resetPassword } from "../api/auth";
+// import { resetPassword } from "../api/auth";
 import { toast } from "react-toastify";
 import {
   FaLock,

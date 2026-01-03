@@ -52,14 +52,10 @@ const login = async (email, password, role) => {
     
     const loginAxios = axios.create();
     
-    console.log('Login attempt without token:', { email, password: '***' });
-    
     const response = await loginAxios.post(`${API_URL}/auth/login`, {
       email,
       password
     });
-
-    console.log('Login response:', response.data);
     
     const { accessToken, refreshToken, user: userData } = response.data;
     

@@ -141,7 +141,6 @@ const CreateAdmin = () => {
     // Create a fresh axios instance without interceptors
     const cloudinaryAxios = axios.create();
     
-    console.log('Uploading to Cloudinary with preset:', 'school_admin_profile');
     
     const response = await cloudinaryAxios.post(
       `https://api.cloudinary.com/v1_1/dgk47100y/image/upload`,
@@ -154,12 +153,10 @@ const CreateAdmin = () => {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
           );
-          console.log(`Upload progress: ${percentCompleted}%`);
         }
       }
     );
     
-    console.log('Upload successful! Response:', response.data);
     
     return {
       profileImage: response.data.secure_url,
@@ -169,39 +166,6 @@ const CreateAdmin = () => {
     console.error('❌ Error uploading image:', error);
   }
 };
-
-// Add a temporary test function to see the exact error structure
-const testBackendValidation = async () => {
-  try {
-    const API_URL = 'https://school-management-system-backend-three.vercel.app';
-    const schoolId = localStorage.getItem('createdSchoolId');
-    
-    console.log('🧪 Testing backend validation...');
-    
-    const testPayload = {
-      firstName: 'Test',
-      lastName: 'User',
-      email: 'test@example.com',
-      password: 'password123',
-      role: 'admin',
-      school: schoolId,
-      profileImage: 'https://example.com/image.jpg',
-      imagePublicId: 'test123'
-    };
-    
-    console.log('Test payload:', testPayload);
-    
-    const response = await axios.post(`${API_URL}/create-admin`, testPayload);
-    console.log('✅ Test successful:', response.data);
-  } catch (error) {
-    console.error('❌ Test failed. Full error:', error);
-    console.error('❌ Error response data:', error.response?.data);
-    console.error('❌ Error structure:', JSON.stringify(error.response?.data, null, 2));
-  }
-};
-
-// Call this function temporarily to test
-// testBackendValidation();
 
 
   // Validate entire form
@@ -228,10 +192,8 @@ useEffect(() => {
   // Check for school ID on component mount
   const checkSchoolId = () => {
     const schoolId = localStorage.getItem("createdSchoolId");
-    console.log("🏫 Checking for school ID on mount:", schoolId);
     
     if (!schoolId) {
-      console.error("❌ No school ID found in localStorage!");
       toast.error("No school found. Please create a school first.");
       
       // Option 1: Redirect immediately
@@ -261,10 +223,8 @@ useEffect(() => {
     const API_URL = 'https://school-management-system-backend-three.vercel.app';
     const schoolId = localStorage.getItem('createdSchoolId');
     
-    console.log('🔍 Debug: School ID from storage:', schoolId);
 
     if (!schoolId) {
-      console.log('No school found. Please create a school first.');
       navigate('/create-school');
       return;
     }
@@ -279,15 +239,12 @@ useEffect(() => {
       school: schoolId, // Just the ID string, backend might populate the object
     };
 
-    console.log('📦 Initial payload:', adminPayload);
 
     // If profile image is selected, upload it first
     if (profileImage) {
       setImageUploading(true);
       try {
-        console.log('📤 Starting image upload...');
         const imageData = await uploadImageToCloudinary(profileImage);
-        console.log('✅ Image uploaded successfully:', imageData);
         
         // Add image data to payload
         adminPayload.profileImage = imageData.profileImage;
@@ -295,7 +252,6 @@ useEffect(() => {
         
         toast.success('Profile image uploaded successfully!');
       } catch (uploadError) {
-        console.error('❌ Image upload failed:', uploadError);
         toast.error('Failed to upload profile image. Please try a different image.');
         setImageUploading(false);
         setLoading(false);
@@ -304,20 +260,12 @@ useEffect(() => {
         setImageUploading(false);
       }
     }
-
-    console.log('📨 Final payload to backend:');
-    console.log(JSON.stringify(adminPayload, null, 2));
-    
-    // Try the request with more debugging
-    console.log('🚀 Sending POST request to:', `${API_URL}/create-admin`);
     
     // Create admin
     const response = await axios.post(
       `${API_URL}/create-admin`,
       adminPayload
     );
-
-    console.log('✅ Admin created successfully:', response.data);
     
     // Clear school ID from storage
     localStorage.removeItem('createdSchoolId');
@@ -328,22 +276,16 @@ useEffect(() => {
     navigate('/admin');
     
   } catch (error) {
-    console.error('❌ Full error object:', error);
     
     if (error.response) {
-      console.error('📋 Response status:', error.response.status);
-      console.error('📋 Response data:', error.response.data);
-      console.error('📋 Response headers:', error.response.headers);
       
       if (error.response.status === 422) {
         // Show detailed validation errors
         if (error.response.data.errors) {
           error.response.data.errors.forEach(err => {
-            console.error(`❌ Validation error: ${err.path} - ${err.msg}`);
             toast.error(`${err.path}: ${err.msg}`);
           });
         } else {
-          console.error('❌ 422 Error details:', error.response.data);
           toast.error('Validation failed: ' + JSON.stringify(error.response.data));
         }
       } else if (error.response.status === 401) {
@@ -358,10 +300,8 @@ useEffect(() => {
         toast.error(error.response.data.message || 'Request failed');
       }
     } else if (error.request) {
-      console.error('❌ No response received:', error.request);
       toast.error('No response from server. Check your connection.');
     } else {
-      console.error('❌ Request setup error:', error.message);
       toast.error('Request failed: ' + error.message);
     }
   } finally {

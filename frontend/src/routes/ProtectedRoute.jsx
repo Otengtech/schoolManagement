@@ -5,16 +5,7 @@ import { useAuth } from "../context/AuthContext";
 const ProtectedRoute = ({ requiredRole, children }) => {
   const { user, token } = useAuth();
 
-  // Debug logging
-  console.log("ProtectedRoute check:", {
-    hasToken: !!token,
-    userRole: user?.role,
-    requiredRole,
-    userData: user
-  });
-
   if (!token) {
-    console.log("No token, redirecting to login");
     return <Navigate to="/login" />;
   }
 
@@ -34,7 +25,6 @@ const ProtectedRoute = ({ requiredRole, children }) => {
 
   // Check if user has required role
   if (userRole !== normalizedRequiredRole) {
-    console.log(`Role mismatch. User: ${userRole}, Required: ${normalizedRequiredRole}`);
     return <Navigate to="/unauthorized" />;
   }
 

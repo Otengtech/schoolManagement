@@ -77,7 +77,7 @@ const MainPage = () => {
   {/* Sidebar */}
   <Sidebar setActivePage={setActivePage} isSidebarOpen={isSidebarOpen} />
 
-  {/* Main Content Area */}
+  {/* Main Content - Completely fixed */}
   <div className="flex-1 flex flex-col overflow-hidden">
     {/* Fixed Top Navbar */}
     <div className="flex-shrink-0">
@@ -88,12 +88,9 @@ const MainPage = () => {
       />
     </div>
 
-    {/* Main Content Container - Fixed position */}
-    <div className="flex-1 overflow-hidden">
-      {/* Only page content will scroll if needed */}
-      <div className="h-full overflow-y-auto">
-        {renderPage()}
-      </div>
+    {/* Fixed Content Area - No overflow at all */}
+    <div className="flex-1 overflow-hidden relative">
+      {renderPage()}
     </div>
   </div>
 </div>

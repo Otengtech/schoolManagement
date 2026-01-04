@@ -359,7 +359,7 @@ const handleLogout = () => {
   );
 
   return (
-    <nav className="h-14 bg-gradient-to-r from-[#ffa301] to-[#ffa301]/90 shadow-lg flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
+    <nav className="relative h-14 bg-gradient-to-r from-[#ffa301] to-[#ffa301]/90 shadow-lg flex items-center justify-between px-4 md:px-6 top-0 z-30">
       {/* Left: Brand */}
       <div className="ml-16 md:ml-0">
         <h1 className="text-lg md:text-xl font-bold text-[#052954]">TriNova System</h1>

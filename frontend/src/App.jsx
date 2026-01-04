@@ -7,6 +7,7 @@ import Login from './auth/Login';
 import CreateSchoolPage from './pages/createSchool/SchoolPage';
 import CreateAdmin from './pages/CreateAdmin';
 import AdminPage from './pages/admin/AdminPage';
+import CreateSuper from './pages/CreateSuper';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Routes>
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
+          <Route path="/create-super" element={<CreateSuper />} />
           
           {/* Super Admin Routes - Must login as super-admin */}
           <Route 

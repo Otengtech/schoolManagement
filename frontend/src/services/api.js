@@ -1,7 +1,6 @@
-// src/services/api.js
+// src/services/api.js - Simple version
 import axios from 'axios';
 
-// Check what your base URL actually is
 const API_URL = import.meta.env.VITE_API_URL || 'https://school-management-system-backend-three.vercel.app';
 
 const api = axios.create({
@@ -11,15 +10,20 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to see what's happening
+// Simple request interceptor - just adds token if it exists
 api.interceptors.request.use(
   (config) => {
+    // Skip token for public endpoints
+    const publicEndpoints = ['/auth/login', '/create-super'];
+    if (publicEndpoints.some(endpoint => config.url.includes(endpoint))) {
+      return config;
+    }
+
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      console.log('⚠️ No token found');
     }
+    
     return config;
   },
   (error) => {

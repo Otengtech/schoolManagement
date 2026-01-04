@@ -85,7 +85,8 @@ const CreateSchoolPage = () => {
     }
   };
 
- const handleSubmit = async (e) => {
+// In SchoolPage.jsx handleSubmit function
+const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (!validateForm()) {
@@ -97,72 +98,49 @@ const CreateSchoolPage = () => {
 
   try {
     const API_URL = "https://school-management-system-backend-three.vercel.app";
+    
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      showToast("Please login first", "error");
+      navigate("/login");
+      return;
+    }
 
-    // Axios interceptor will automatically add the token!
+    // Use axios directly with token
     const response = await axios.post(
       `${API_URL}/create-school`,
-      schoolData
-      // No need for manual headers - AuthContext interceptor handles it
+      schoolData,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
     );
 
-    // Reset form
-    setSchoolData({
-      name: "",
-      code: "",
-      email: "",
-      phone: "",
-      address: "",
-    });
-
+    // Success handling...
     showToast("School created successfully!", "success");
     
-    // DEBUG: Log the full response
-    console.log("✅ School created response:", response.data);
-    console.log("📋 Full response object:", response);
-
-    // Get the created school ID - TRY DIFFERENT PATHS
-    let createdSchoolId = null;
+    // Store school name for admin creation
+    localStorage.setItem("createdSchoolName", schoolData.name);
     
     if (response.data._id) {
-      createdSchoolId = response.data._id; // Direct _id
-      console.log("📌 Found school ID at response.data._id:", createdSchoolId);
-    } else if (response.data.school?._id) {
-      createdSchoolId = response.data.school._id; // Nested school._id
-      console.log("📌 Found school ID at response.data.school._id:", createdSchoolId);
-    } else if (response.data.schoolId) {
-      createdSchoolId = response.data.schoolId; // schoolId field
-      console.log("📌 Found school ID at response.data.schoolId:", createdSchoolId);
-    } else if (response.data.data?._id) {
-      createdSchoolId = response.data.data._id; // Nested in data object
-      console.log("📌 Found school ID at response.data.data._id:", createdSchoolId);
-    } else {
-      // If we can't find it, try to extract from the response
-      console.log("❌ Could not find school ID. Full response:", JSON.stringify(response.data, null, 2));
+      localStorage.setItem("createdSchoolId", response.data._id);
     }
 
-    // Store school ID for creating admin
-    if (createdSchoolId) {
-      localStorage.setItem("createdSchoolId", createdSchoolId);
-      console.log("💾 Saved school ID to localStorage:", createdSchoolId);
-      
-      // Also verify it was saved
-      const savedId = localStorage.getItem("createdSchoolId");
-      console.log("🔍 Verified saved school ID:", savedId);
-    } else {
-      console.error("❌ No school ID found to save!");
-      showToast("School created but ID not found. Contact support.", "error");
-    }
-
-    // Redirect to create admin page after 2 seconds
     setTimeout(() => {
       navigate("/create-admin");
     }, 2000);
+    
   } catch (error) {
     console.error("Error creating school:", error);
 
     if (error.response?.status === 401) {
       showToast("Session expired. Please login again.", "error");
-      logout();
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       navigate("/login");
     } else {
       showToast(

@@ -6,6 +6,7 @@ const ProtectedRoute = ({ requiredRole, children }) => {
   const { user, token } = useAuth();
 
   if (!token) {
+    console.log("No token, redirecting to login");
     return <Navigate to="/login" />;
   }
 
@@ -25,6 +26,7 @@ const ProtectedRoute = ({ requiredRole, children }) => {
 
   // Check if user has required role
   if (userRole !== normalizedRequiredRole) {
+    console.log(`Role mismatch. User: ${userRole}, Required: ${normalizedRequiredRole}`);
     return <Navigate to="/unauthorized" />;
   }
 

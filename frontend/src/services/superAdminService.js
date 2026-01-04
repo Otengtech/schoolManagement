@@ -3,6 +3,23 @@ import api from './api';
 
 export const superAdminService = {
   // School Management
+
+  // Super Admin Creation (no token required)
+  async createSuperAdmin(superAdminData) {
+    try {
+      
+      const response = await api.post('/create-super', superAdminData);
+      return response.data;
+    } catch (error) {
+      console.error('Create super admin error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw error.response?.data || { message: 'Failed to create super admin' };
+    }
+  },
+  
   async createSchool(schoolData) {
     try {
       console.log('Creating school with data:', schoolData);
@@ -84,6 +101,28 @@ export const superAdminService = {
       throw error.response?.data || { message: 'Failed to create admin' };
     }
   },
+
+  // Get single admin by ID
+async getAdminById(adminId) {
+  try {
+    const response = await api.get(`/admins/${adminId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get admin by ID error:', error);
+    throw error.response?.data || { message: 'Failed to fetch admin details' };
+  }
+},
+
+// Add to superAdminService.js
+async getSchoolById(schoolId) {
+  try {
+    const response = await api.get(`/schools/${schoolId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Get school error:', error);
+    throw error.response?.data || { message: 'Failed to fetch school' };
+  }
+}, 
 
   async listAdmins() {
     try {

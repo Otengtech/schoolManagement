@@ -31,9 +31,8 @@ const CreateAdmin = () => {
 
   const [profileImage, setProfileImage] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState("");
-  const [imageUploading, setImageUploading] = useState(false);
-  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [touched, setTouched] = useState({});
@@ -94,15 +93,14 @@ const CreateAdmin = () => {
     setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
-  // Handle profile image selection
+  // Handle file change - Updated to match friend's code
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validate file type
-    const validTypes = ["image/jpeg", "image/png", "image/jpg", "image/gif"];
-    if (!validTypes.includes(file.type)) {
-      toast.error("Please select a valid image file (JPEG, PNG, GIF)");
+    // Validate file type - Updated to match friend's code
+    if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG allowed");
       return;
     }
 
@@ -131,43 +129,6 @@ const CreateAdmin = () => {
     }
   };
 
-  const uploadImageToCloudinary = async (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', 'school_admin_profile'); // Use this exact name
-  formData.append('folder', 'profilePic'); // Optional, but you have it configured
-
-  try {
-    // Create a fresh axios instance without interceptors
-    const cloudinaryAxios = axios.create();
-    
-    
-    const response = await cloudinaryAxios.post(
-      `https://api.cloudinary.com/v1_1/dgk47100y/image/upload`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-        }
-      }
-    );
-    
-    
-    return {
-      profileImage: response.data.secure_url,
-      imagePublicId: response.data.public_id
-    };
-  } catch (error) {
-    console.error('❌ Error uploading image:', error);
-  }
-};
-
-
   // Validate entire form
   const validateForm = () => {
     const newErrors = {};
@@ -187,122 +148,165 @@ const CreateAdmin = () => {
     return !Object.values(newErrors).some((error) => error !== "");
   };
 
-  // Add this useEffect at the beginning of your CreateAdmin component
-useEffect(() => {
-  // Check for school ID on component mount
-  const checkSchoolId = () => {
-    const schoolId = localStorage.getItem("createdSchoolId");
-    
-    if (!schoolId) {
-      toast.error("No school found. Please create a school first.");
+  useEffect(() => {
+    const checkSchoolName = () => {
+      const schoolName = localStorage.getItem("createdSchoolName");
       
-      // Option 1: Redirect immediately
-      // navigate('/create-school');
+      if (!schoolName) {
+        toast.error("No school found. Please create a school first.");
+        return false;
+      }
       
-      // Option 2: Let user click back button
-      return false;
-    }
+      return true;
+    };
     
-    return true;
-  };
-  
-  checkSchoolId();
-}, [navigate]); // Add navigate to dependencies
+    checkSchoolName();
+  }, [navigate]);
 
+  // UPDATED handleSubmit to match friend's working code
   const handleSubmit = async (e) => {
   e.preventDefault();
   
   if (!validateForm()) {
-    toast.error('Please fix the form errors');
+    toast.error("Please fix the form errors");
     return;
   }
 
   setLoading(true);
 
   try {
-    const API_URL = 'https://school-management-system-backend-three.vercel.app';
-    const schoolId = localStorage.getItem('createdSchoolId');
-    
+    const schoolName = localStorage.getItem("createdSchoolName");
+    const accessToken = localStorage.getItem("token"); // FIXED: Changed from "accessToken" to "token"
 
-    if (!schoolId) {
-      navigate('/create-school');
+    if (!schoolName) {
+      toast.error("No school ID found. Please create a school first.");
+      navigate("/create-school");
       return;
     }
 
-    // Prepare admin data - MATCH EXACTLY what backend expects
-    const adminPayload = {
-      firstName: adminData.firstName,
-      lastName: adminData.lastName,
-      email: adminData.email,// Include only if backend accepts it
-      password: adminData.password, // Backend will hash this
-      role: 'admin',
-      school: schoolId, // Just the ID string, backend might populate the object
-    };
+    if (!accessToken) {
+      toast.error("No access token. Please login.");
+      navigate("/login");
+      return;
+    }
 
+    // Debug: Check what's in localStorage
+    console.log("🔍 Checking localStorage:");
+    console.log("Token:", localStorage.getItem("token"));
+    console.log("User:", localStorage.getItem("user"));
+    console.log("School Name:", schoolName);
 
-    // If profile image is selected, upload it first
-    if (profileImage) {
-      setImageUploading(true);
-      try {
-        const imageData = await uploadImageToCloudinary(profileImage);
-        
-        // Add image data to payload
-        adminPayload.profileImage = imageData.profileImage;
-        adminPayload.imagePublicId = imageData.imagePublicId;
-        
-        toast.success('Profile image uploaded successfully!');
-      } catch (uploadError) {
-        toast.error('Failed to upload profile image. Please try a different image.');
-        setImageUploading(false);
-        setLoading(false);
-        return;
-      } finally {
-        setImageUploading(false);
+    // Create FormData
+    const formData = new FormData();
+
+    // Add fields
+    formData.append("school", schoolName);
+    formData.append("firstName", adminData.firstName.trim());
+    formData.append("lastName", adminData.lastName.trim());
+    formData.append("email", adminData.email.trim());
+    formData.append("password", adminData.password);
+
+    // Add profile image if exists
+    if (profileImage instanceof File) {
+      formData.append("profileImage", profileImage);
+    }
+
+    // Debug: Log FormData entries
+    console.log("📋 FormData entries being sent:");
+    for (let [key, value] of formData.entries()) {
+      console.log(
+        `${key}:`,
+        value instanceof File
+          ? `File: ${value.name} (${value.size} bytes)`
+          : `String: ${value}`
+      );
+    }
+
+    // Send request
+    console.log("🚀 Sending POST to: https://school-management-system-backend-three.vercel.app/create-admin");
+    console.log("🔑 Using token:", accessToken ? `${accessToken.substring(0, 20)}...` : 'No token');
+    
+    const response = await axios.post(
+      "https://school-management-system-backend-three.vercel.app/create-admin",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true,
+        timeout: 30000,
       }
+    );
+
+    console.log("✅ Success! Response:", response.data);
+
+    // Clear school data from storage
+    localStorage.removeItem("createdSchoolName");
+    localStorage.removeItem("createdSchoolId");
+
+    toast.success("Admin account created successfully!");
+
+    const completeAdminData = {
+  ...response.data, // This should have firstName, lastName, etc.
+  profileImage: profileImagePreview || adminData.profileImage,
+  schoolName: adminData.schoolName,
+  email: adminData.email,
+  phone: adminData.phone
+};
+
+localStorage.setItem('createdAdmin', JSON.stringify(completeAdminData));
+console.log("💾 Stored admin data:", completeAdminData);
+    
+    // Redirect to appropriate page
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.role === 'super-admin' || user.role === 'super_admin') {
+        navigate("/admin-list"); // or wherever super admin should go
+      } else {
+        navigate("/admin");
+      }
+    } else {
+      navigate("/login");
     }
     
-    // Create admin
-    const response = await axios.post(
-      `${API_URL}/create-admin`,
-      adminPayload
-    );
-    
-    // Clear school ID from storage
-    localStorage.removeItem('createdSchoolId');
-
-    toast.success('Admin account created successfully!');
-    
-    // Redirect to admin dashboard
-    navigate('/admin');
-    
   } catch (error) {
+    console.error("❌ Create admin error:", error);
     
     if (error.response) {
+      console.log("📡 Response status:", error.response.status);
+      console.log("📡 Response data:", error.response.data);
       
-      if (error.response.status === 422) {
-        // Show detailed validation errors
-        if (error.response.data.errors) {
-          error.response.data.errors.forEach(err => {
-            toast.error(`${err.path}: ${err.msg}`);
+      if (error.response.status === 500) {
+        toast.error("Server error: " + (error.response.data?.message || "Internal server error"));
+      } else if (error.response.status === 400) {
+        const errorData = error.response.data;
+        if (errorData.errors) {
+          // Show validation errors
+          errorData.errors.forEach((err) => {
+            toast.error(`${err.path || ""}: ${err.msg || err.message}`);
           });
         } else {
-          toast.error('Validation failed: ' + JSON.stringify(error.response.data));
+          toast.error("Bad request: " + JSON.stringify(errorData));
         }
       } else if (error.response.status === 401) {
-        toast.error('Session expired. Please login again.');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('user');
-        localStorage.removeItem('createdSchoolId');
-        navigate('/login');
-      } else if (error.response.status === 400) {
-        toast.error(error.response.data.message || 'Bad request');
+        toast.error("Session expired. Please login again.");
+        localStorage.removeItem("token"); // FIXED: Also remove token
+        localStorage.removeItem("user");
+        navigate("/login");
+      } else if (error.response.status === 409) {
+        toast.error("Email already exists. Please use a different email.");
+      } else if (error.response.status === 413) {
+        toast.error("File too large. Please use a smaller image.");
       } else {
-        toast.error(error.response.data.message || 'Request failed');
+        toast.error("Request failed: " + JSON.stringify(error.response.data));
       }
     } else if (error.request) {
-      toast.error('No response from server. Check your connection.');
+      console.log("❌ No response received. Network error.");
+      toast.error("Network error: Cannot connect to server.");
     } else {
-      toast.error('Request failed: ' + error.message);
+      toast.error("Request failed: " + error.message);
     }
   } finally {
     setLoading(false);
@@ -315,7 +319,7 @@ useEffect(() => {
     "User administration & permissions",
     "Student records management",
     "Teacher assignment & scheduling",
-    "Financial oversight"
+    "Financial oversight",
   ];
 
   return (
@@ -379,11 +383,10 @@ useEffect(() => {
                     <FaCamera className="text-[#ffa301]" />
                   </div>
                   <div>
-                    <p className="font-medium">Profile Image Tips</p>
+                    <p className="font-medium">Profile Image Storage</p>
                     <p className="text-xs text-blue-100">
-                      Upload a clear, professional photo. Use JPEG, PNG, or GIF
-                      format (max 5MB). This image will be visible to other
-                      users.
+                      Image will be stored as base64 in your database. 
+                      Use JPEG or PNG format (max 5MB recommended).
                     </p>
                   </div>
                 </div>
@@ -403,7 +406,8 @@ useEffect(() => {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+              {/* UPDATED: Added encType to form */}
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate encType="multipart/form-data">
                 {/* School Info */}
                 <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl p-4">
                   <div className="flex items-center gap-3">
@@ -452,7 +456,7 @@ useEffect(() => {
                         <button
                           type="button"
                           onClick={handleRemoveImage}
-                          disabled={loading || imageUploading}
+                          disabled={loading}
                           className="absolute -top-1 -right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
                         >
                           <FaTrash className="text-xs" />
@@ -466,43 +470,35 @@ useEffect(() => {
                         type="file"
                         ref={fileInputRef}
                         onChange={handleImageChange}
-                        accept="image/jpeg,image/png,image/jpg,image/gif"
+                        accept="image/jpeg,image/png,image/jpg"
                         className="hidden"
                         id="profile-image-upload"
-                        disabled={loading || imageUploading}
+                        disabled={loading}
                       />
 
                       <label
                         htmlFor="profile-image-upload"
                         className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 border-dashed cursor-pointer transition-all ${
-                          loading || imageUploading
+                          loading
                             ? "opacity-50 cursor-not-allowed bg-gray-100 border-gray-300"
                             : "hover:border-[#ffa301] hover:bg-yellow-50 border-gray-300"
                         }`}
                       >
-                        {imageUploading ? (
-                          <>
-                            <FaSpinner className="animate-spin text-[#ffa301]" />
-                            <span className="text-sm text-gray-600">
-                              Uploading...
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <FaUpload className="text-[#ffa301]" />
-                            <div>
-                              <p className="text-sm font-medium text-gray-700">
-                                {profileImage ? "Change Image" : "Upload Image"}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                JPEG, PNG, GIF • Max 5MB
-                              </p>
-                            </div>
-                          </>
-                        )}
+                        <FaUpload className="text-[#ffa301]" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">
+                            {profileImage ? "Change Image" : "Upload Image"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            JPEG, PNG • Max 5MB
+                          </p>
+                        </div>
                       </label>
                     </div>
                   </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Optional: Image will be uploaded and stored
+                  </p>
                 </div>
 
                 {/* First Name Input */}
@@ -524,13 +520,13 @@ useEffect(() => {
                         handleChange("firstName", e.target.value)
                       }
                       onBlur={() => handleBlur("firstName")}
-                      disabled={loading || imageUploading}
+                      disabled={loading}
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                         errors.firstName && touched.firstName
                           ? "border-red-300 focus:ring-red-500 bg-red-50"
                           : "border-gray-300 focus:ring-[#ffa301]"
                       } ${
-                        loading || imageUploading
+                        loading
                           ? "opacity-50 cursor-not-allowed"
                           : ""
                       }`}
@@ -541,7 +537,7 @@ useEffect(() => {
                         errors.firstName && touched.firstName
                           ? "text-red-400"
                           : "text-gray-400"
-                      } ${loading || imageUploading ? "opacity-50" : ""}`}
+                      } ${loading ? "opacity-50" : ""}`}
                     />
                   </div>
 
@@ -570,13 +566,13 @@ useEffect(() => {
                       value={adminData.lastName}
                       onChange={(e) => handleChange("lastName", e.target.value)}
                       onBlur={() => handleBlur("lastName")}
-                      disabled={loading || imageUploading}
+                      disabled={loading}
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                         errors.lastName && touched.lastName
                           ? "border-red-300 focus:ring-red-500 bg-red-50"
                           : "border-gray-300 focus:ring-[#ffa301]"
                       } ${
-                        loading || imageUploading
+                        loading
                           ? "opacity-50 cursor-not-allowed"
                           : ""
                       }`}
@@ -587,7 +583,7 @@ useEffect(() => {
                         errors.lastName && touched.lastName
                           ? "text-red-400"
                           : "text-gray-400"
-                      } ${loading || imageUploading ? "opacity-50" : ""}`}
+                      } ${loading ? "opacity-50" : ""}`}
                     />
                   </div>
 
@@ -616,13 +612,13 @@ useEffect(() => {
                       value={adminData.email}
                       onChange={(e) => handleChange("email", e.target.value)}
                       onBlur={() => handleBlur("email")}
-                      disabled={loading || imageUploading}
+                      disabled={loading}
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                         errors.email && touched.email
                           ? "border-red-300 focus:ring-red-500 bg-red-50"
                           : "border-gray-300 focus:ring-[#ffa301]"
                       } ${
-                        loading || imageUploading
+                        loading
                           ? "opacity-50 cursor-not-allowed"
                           : ""
                       }`}
@@ -633,7 +629,7 @@ useEffect(() => {
                         errors.email && touched.email
                           ? "text-red-400"
                           : "text-gray-400"
-                      } ${loading || imageUploading ? "opacity-50" : ""}`}
+                      } ${loading ? "opacity-50" : ""}`}
                     />
                   </div>
 
@@ -662,13 +658,13 @@ useEffect(() => {
                       value={adminData.password}
                       onChange={(e) => handleChange("password", e.target.value)}
                       onBlur={() => handleBlur("password")}
-                      disabled={loading || imageUploading}
+                      disabled={loading}
                       className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                         errors.password && touched.password
                           ? "border-red-300 focus:ring-red-500 bg-red-50"
                           : "border-gray-300 focus:ring-[#ffa301]"
                       } ${
-                        loading || imageUploading
+                        loading
                           ? "opacity-50 cursor-not-allowed"
                           : ""
                       }`}
@@ -679,14 +675,14 @@ useEffect(() => {
                         errors.password && touched.password
                           ? "text-red-400"
                           : "text-gray-400"
-                      } ${loading || imageUploading ? "opacity-50" : ""}`}
+                      } ${loading ? "opacity-50" : ""}`}
                     />
 
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
-                      disabled={loading || imageUploading}
+                      disabled={loading}
                     >
                       {showPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
@@ -719,13 +715,13 @@ useEffect(() => {
                         handleChange("confirmPassword", e.target.value)
                       }
                       onBlur={() => handleBlur("confirmPassword")}
-                      disabled={loading || imageUploading}
+                      disabled={loading}
                       className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                         errors.confirmPassword && touched.confirmPassword
                           ? "border-red-300 focus:ring-red-500 bg-red-50"
                           : "border-gray-300 focus:ring-[#ffa301]"
                       } ${
-                        loading || imageUploading
+                        loading
                           ? "opacity-50 cursor-not-allowed"
                           : ""
                       }`}
@@ -736,7 +732,7 @@ useEffect(() => {
                         errors.confirmPassword && touched.confirmPassword
                           ? "text-red-400"
                           : "text-gray-400"
-                      } ${loading || imageUploading ? "opacity-50" : ""}`}
+                      } ${loading ? "opacity-50" : ""}`}
                     />
 
                     <button
@@ -745,7 +741,7 @@ useEffect(() => {
                         setShowConfirmPassword(!showConfirmPassword)
                       }
                       className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
-                      disabled={loading || imageUploading}
+                      disabled={loading}
                     >
                       {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                     </button>
@@ -763,9 +759,9 @@ useEffect(() => {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    disabled={loading || imageUploading}
+                    disabled={loading}
                     className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white transition-all duration-200 ${
-                      loading || imageUploading
+                      loading
                         ? "bg-[#ffa301]/70 cursor-not-allowed"
                         : "bg-gradient-to-r from-[#052954] to-[#041e42] hover:opacity-90 shadow-md hover:shadow-lg"
                     }`}
@@ -774,11 +770,6 @@ useEffect(() => {
                       <>
                         <FaSpinner className="animate-spin" />
                         <span>Creating Admin Account...</span>
-                      </>
-                    ) : imageUploading ? (
-                      <>
-                        <FaSpinner className="animate-spin" />
-                        <span>Uploading Image...</span>
                       </>
                     ) : (
                       <>
@@ -794,11 +785,11 @@ useEffect(() => {
                       type="button"
                       onClick={() => navigate("/login")}
                       className={`text-sm font-medium hover:underline ${
-                        loading || imageUploading
+                        loading
                           ? "text-gray-400 cursor-not-allowed"
                           : "text-[#ffa301] hover:text-[#e59400]"
                       }`}
-                      disabled={loading || imageUploading}
+                      disabled={loading}
                     >
                       ← Back to login
                     </button>

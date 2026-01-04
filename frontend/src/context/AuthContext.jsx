@@ -1,112 +1,103 @@
-// Updated AuthContext.jsx
-import React, { createContext, useState, useContext, useEffect } from 'react';
+// AuthContext.jsx - Simple version without refresh
+import React, { createContext, useState, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const API_URL = "https://school-management-system-backend-three.vercel.app";
+const API_URL = import.meta.env.VITE_API_URL || 'https://school-management-system-backend-three.vercel.app';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-  const [token, setToken] = useState(localStorage.getItem('accessToken') || '');
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [loading, setLoading] = useState(false);
 
-  // Initialize axios interceptors
-  useEffect(() => {
-    // Request interceptor to add token
-    const requestInterceptor = axios.interceptors.request.use(
-      (config) => {
-        // DON'T add token to login endpoint
-        if (config.url.includes('/auth/login')) {
-          // Remove Authorization header if it exists
-          delete config.headers.Authorization;
-          return config;
-        }
-        
-        const accessToken = localStorage.getItem('accessToken');
-        if (accessToken) {
-          config.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
+  // Simple login function
+  const login = async (email, password) => {
+    try {
+      setLoading(true);
+      
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        email,
+        password
+      });
+    
+      
+      const { accessToken, user: userData } = response.data;
+      
+      // Store token and user in localStorage
+      localStorage.setItem('token', accessToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Set state
+      setToken(accessToken);
+      setUser(userData);
+      
+      toast.success(`Welcome back, ${userData.name || userData.firstName || 'User'}!`);
+      
+      return { 
+        success: true, 
+        data: response.data,
+        user: userData,
+        role: userData.role
+      };
+      
+    } catch (error) {
+      console.error("Login error:", error);
+      
+      let errorMessage = 'Login failed';
+      if (error.response?.status === 401) {
+        errorMessage = 'Invalid email or password';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
       }
-    );
-
-    setLoading(false);
-
-    return () => {
-      axios.interceptors.request.eject(requestInterceptor);
-    };
-  }, []);
-
-  // Login function - FIXED VERSION
-const login = async (email, password, role) => {
-  try {
-    setLoading(true);
-    
-    const loginAxios = axios.create();
-    
-    const response = await loginAxios.post(`${API_URL}/auth/login`, {
-      email,
-      password
-    });
-    
-    const { accessToken, refreshToken, user: userData } = response.data;
-    
-    // Normalize role from backend (super_admin to super-admin)
-    const normalizedRole = userData.role === 'super_admin' 
-      ? 'super-admin' 
-      : userData.role;
-    
-    // Store tokens and user data
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken || '');
-    localStorage.setItem('user', JSON.stringify({ 
-      ...userData, 
-      role: normalizedRole 
-    }));
-    
-    setToken(accessToken);
-    setUser({ ...userData, role: normalizedRole });
-    
-    toast.success(`Welcome back, ${userData.name || 'User'}!`);
-    
-    return { 
-      success: true, 
-      data: response.data, 
-      role: normalizedRole 
-    };
-    
-  } catch (error) {
-    // ... error handling
-  } finally {
-    setLoading(false);
-  }
-};
-
- // Add isAuthenticated function
-  const isAuthenticated = () => {
-    // Check if token exists and is valid
-    const token = localStorage.getItem('accessToken');
-    return !!token; // Returns true if token exists, false otherwise
+      
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+      
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // ... rest of your AuthContext code (logout, etc.)
-  
+  // Simple authentication check
+  const isAuthenticated = () => {
+    const storedToken = localStorage.getItem('token');
+    return !!storedToken; // Just check if token exists
+  };
+
+  // Simple logout
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+    toast.info('Logged out successfully');
+    window.location.href = '/login';
+  };
+
+  // Get current user
+  const getCurrentUser = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      return null;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ 
-      user,
-      token, 
-      login, 
-      isAuthenticated,
-      loading 
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        logout,
+        isAuthenticated,
+        getCurrentUser
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

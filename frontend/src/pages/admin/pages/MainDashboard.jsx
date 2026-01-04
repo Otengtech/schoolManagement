@@ -1,5 +1,6 @@
 // MainDashboard.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   LineChart, Line, BarChart, Bar, AreaChart, Area, 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -9,75 +10,115 @@ import {
   FaUsers, FaChalkboardTeacher, FaUserFriends, 
   FaDollarSign, FaCalendarAlt, FaBell, 
   FaChartLine, FaGraduationCap, FaBook,
-  FaArrowUp, FaCaretRight
+  FaArrowUp, FaCaretRight, FaUser, FaBuilding, FaEnvelope,
+  FaPhone, FaSignOutAlt, FaSpinner, FaShieldAlt
 } from "react-icons/fa";
+import { superAdminService } from "../../../services/superAdminService";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const MainDashboard = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [timeOfDay, setTimeOfDay] = useState('');
+  const [adminData, setAdminData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Top Stats Data with your colors
-  const topStats = [
-    { 
-      title: "Total Students", 
-      value: "150,000", 
-      icon: <FaUsers className="text-[#ffa301]" />,
-      color: "bg-[#052954]/10",
-      textColor: "text-[#052954]",
-      change: "+12%",
-      trend: "up",
-      detail: "Active: 142,500"
-    },
-    { 
-      title: "Teachers", 
-      value: "2,250", 
-      icon: <FaChalkboardTeacher className="text-[#ffa301]" />,
-      color: "bg-[#052954]/10",
-      textColor: "text-[#052954]",
-      change: "+5%",
-      trend: "up",
-      detail: "Available: 2,150"
-    },
-    { 
-      title: "Parents", 
-      value: "5,690", 
-      icon: <FaUserFriends className="text-[#ffa301]" />,
-      color: "bg-[#052954]/10",
-      textColor: "text-[#052954]",
-      change: "+8%",
-      trend: "up",
-      detail: "Engaged: 5,200"
-    },
-    { 
-      title: "Earnings", 
-      value: "$193K", 
-      icon: <FaDollarSign className="text-[#ffa301]" />,
-      color: "bg-[#052954]/10",
-      textColor: "text-[#052954]",
-      change: "+18%",
-      trend: "up",
-      detail: "Monthly Average"
-    },
-  ];
+  // Fetch admin data
+  useEffect(() => {
+    fetchAdminData();
+    
+    // Get time of day greeting
+    const hour = new Date().getHours();
+    if (hour < 12) setTimeOfDay('Morning');
+    else if (hour < 18) setTimeOfDay('Afternoon');
+    else setTimeOfDay('Evening');
+  }, []);
 
-  // Student Enrollment by Grade
-  const studentData = [
-    { grade: "Grade 1", students: 22000, color: "#ffa301" },
-    { grade: "Grade 2", students: 24000, color: "#052954" },
-    { grade: "Grade 3", students: 26000, color: "#ffa301" },
-    { grade: "Grade 4", students: 28000, color: "#052954" },
-    { grade: "Grade 5", students: 25000, color: "#ffa301" },
-    { grade: "Grade 6", students: 23000, color: "#052954" },
-    { grade: "Grade 7", students: 21000, color: "#ffa301" },
-    { grade: "Grade 8", students: 19000, color: "#052954" },
-  ];
+  // In fetchAdminData function in MainDashboard.jsx
+const fetchAdminData = async () => {
+  try {
+    setLoading(true);
+    
+    const userStr = localStorage.getItem('user');
+    const token = localStorage.getItem('token');
+    
+    if (!userStr || !token) {
+      toast.error("Please login first");
+      navigate("/login");
+      return;
+    }
+    
+    const user = JSON.parse(userStr);
+    
+    // First, get the list of schools
+    try {
+      const schoolsResponse = await superAdminService.listSchools();
+      const schools = schoolsResponse.data || schoolsResponse;
+      
+      // Find the school that matches the admin's school ID
+      const adminSchool = schools.find(school => school._id === user.school);
+      
+      // Create admin info with school name
+      const adminInfo = {
+        ...user,
+        firstName: user.firstName || 'Admin',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        profileImage: user.profileImage || '',
+        // School info from matched school
+        schoolId: user.school,
+        schoolName: adminSchool?.name || 'Your School',
+        schoolCode: adminSchool?.code || '',
+        schoolEmail: adminSchool?.email || '',
+        schoolPhone: adminSchool?.phone || '',
+        schoolAddress: adminSchool?.address || '',
+      };
+      
+      setAdminData(adminInfo);
+      
+    } catch (schoolsError) {
+      
+      // Fallback: Use what you have
+      const adminInfo = {
+        ...user,
+        firstName: user.firstName || 'Admin',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        schoolId: user.school,
+        schoolName: 'Your School',
+        schoolCode: '',
+      };
+      
+      setAdminData(adminInfo);
+    }
+    
+  } catch (error) {
+    console.error("Error fetching admin data:", error);
+    
+    // Final fallback
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setAdminData({
+        ...user,
+        firstName: 'Admin',
+        lastName: 'User',
+        schoolName: 'Your School'
+      });
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
-  // Student Gender Distribution
-  const genderData = [
-    { name: "Female", value: 62000, color: "#ffa301" },
-    { name: "Male", value: 88000, color: "#052954" },
-  ];
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    toast.success("Logged out successfully");
+    navigate("/login");
+  };
 
   // Generate calendar
   const generateCalendar = () => {
@@ -128,14 +169,6 @@ const MainDashboard = () => {
     return days;
   };
 
-  // Get time of day greeting
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) setTimeOfDay('Morning');
-    else if (hour < 18) setTimeOfDay('Afternoon');
-    else setTimeOfDay('Evening');
-  }, []);
-
   const calendarDays = generateCalendar();
   const monthNames = ["January", "February", "March", "April", "May", "June", 
                      "July", "August", "September", "October", "November", "December"];
@@ -153,27 +186,140 @@ const MainDashboard = () => {
     });
   };
 
-  // Calendar events for selected date
-  const calendarEvents = [
-    { time: "09:00 AM", title: "Math Class - Grade 5", type: "class" },
-    { time: "11:00 AM", title: "Parent Meeting", type: "meeting" },
-    { time: "02:00 PM", title: "Science Fair Setup", type: "event" },
+  // Dynamic stats based on admin data
+  const getTopStats = () => {
+    const schoolName = localStorage.getItem('createdSchoolName') || 'Your School';
+    
+    return [
+      { 
+        title: "Total Students", 
+        value: "1,500", 
+        icon: <FaUsers className="text-[#ffa301]" />,
+        color: "bg-[#052954]/10",
+        textColor: "text-[#052954]",
+        change: "+12%",
+        trend: "up",
+        detail: `At ${schoolName}`
+      },
+      { 
+        title: "Teachers", 
+        value: "45", 
+        icon: <FaChalkboardTeacher className="text-[#ffa301]" />,
+        color: "bg-[#052954]/10",
+        textColor: "text-[#052954]",
+        change: "+5%",
+        trend: "up",
+        detail: "Active staff"
+      },
+      { 
+        title: "Active Classes", 
+        value: "32", 
+        icon: <FaUserFriends className="text-[#ffa301]" />,
+        color: "bg-[#052954]/10",
+        textColor: "text-[#052954]",
+        change: "+8%",
+        trend: "up",
+        detail: "This week"
+      },
+      { 
+        title: "School Revenue", 
+        value: "$45K", 
+        icon: <FaDollarSign className="text-[#ffa301]" />,
+        color: "bg-[#052954]/10",
+        textColor: "text-[#052954]",
+        change: "+18%",
+        trend: "up",
+        detail: "This month"
+      },
+    ];
+  };
+
+  // Student data for charts
+  const studentData = [
+    { grade: "Grade 1", students: 220, color: "#ffa301" },
+    { grade: "Grade 2", students: 240, color: "#052954" },
+    { grade: "Grade 3", students: 260, color: "#ffa301" },
+    { grade: "Grade 4", students: 280, color: "#052954" },
+    { grade: "Grade 5", students: 250, color: "#ffa301" },
+    { grade: "Grade 6", students: 230, color: "#052954" },
   ];
+
+  const genderData = [
+    { name: "Female", value: 620, color: "#ffa301" },
+    { name: "Male", value: 880, color: "#052954" },
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#052954]/5 to-[#052954]/10">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#ffa301] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!adminData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-[#052954]/5 to-[#052954]/10">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">No Admin Data Found</h2>
+          <button
+            onClick={() => navigate("/login")}
+            className="bg-[#ffa301] text-white px-6 py-3 rounded-lg hover:bg-[#ffa301]/90 font-medium"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const topStats = getTopStats();
+  const adminName = `${adminData.firstName || ''} ${adminData.lastName || ''}`.trim() || 'Admin';
+  const schoolName = adminData.school?.name || adminData.schoolName || adminData.school || 'Your School';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#052954]/5 to-[#052954]/10 p-4 md:p-6 overflow-y-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-[#052954]">
-              Good {timeOfDay}, Admin!
-            </h1>
-            <p className="text-gray-600 mt-1">Here's your dashboard overview</p>
+          <div className="flex items-center gap-4">
+            {/* Admin Profile Picture */}
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200">
+                {adminData.profileImage ? (
+                  <img
+                    src={adminData.profileImage}
+                    alt={adminName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <FaUser className="text-3xl text-blue-600" />
+                  </div>
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 p-2 bg-[#ffa301] text-white rounded-full shadow-lg">
+                <FaShieldAlt className="text-sm" />
+              </div>
+            </div>
+            
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-[#052954]">
+                Good {timeOfDay}, {adminName}!
+              </h1>
+              <p className="text-gray-600 mt-1 flex items-center gap-2">
+                <FaBuilding className="text-[#ffa301]" />
+                {schoolName} Administrator
+              </p>
+            </div>
           </div>
+          
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center space-x-2 bgc px-4 py-2 rounded-full shadow-sm">
-              <FaCalendarAlt className="yellow" />
+            <div className="hidden md:flex items-center space-x-2 bg-gradient-to-r from-[#052954] to-[#052954]/80 px-4 py-2 rounded-full shadow-sm">
+              <FaCalendarAlt className="text-[#ffa301]" />
               <span className="text-white font-medium">
                 {new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
@@ -182,6 +328,58 @@ const MainDashboard = () => {
                   year: 'numeric'
                 })}
               </span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
+            >
+              <FaSignOutAlt />
+              Logout
+            </button>
+          </div>
+        </div>
+
+        {/* Admin Info Quick View */}
+        <div className="bg-white rounded-2xl p-4 mb-6 shadow-lg border border-gray-100">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#052954]/10 rounded-lg">
+                <FaEnvelope className="text-[#052954]" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Email</p>
+                <p className="font-medium text-sm truncate">{adminData.email || 'N/A'}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#ffa301]/10 rounded-lg">
+                <FaPhone className="text-[#ffa301]" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Phone</p>
+                <p className="font-medium text-sm">{adminData.phone || 'Not provided'}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#052954]/10 rounded-lg">
+                <FaShieldAlt className="text-[#052954]" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Role</p>
+                <p className="font-medium text-sm">Administrator</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#ffa301]/10 rounded-lg">
+                <FaBuilding className="text-[#ffa301]" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">School Code</p>
+                <p className="font-medium text-sm">{adminData.school?.code || adminData.schoolId || 'N/A'}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -197,11 +395,20 @@ const MainDashboard = () => {
                 <div>
                   <p className="text-gray-500 text-sm font-medium mb-1">{stat.title}</p>
                   <p className="text-xl font-bold text-[#052954] mb-2">{stat.value}</p>
+                  <p className="text-xs text-gray-400">{stat.detail}</p>
                 </div>
-                <div className={`p-4 rounded-full bgc`}>
-                  <div className="text-4xl">
+                <div className={`p-4 rounded-full bg-gradient-to-br from-[#052954]/10 to-[#052954]/5`}>
+                  <div className="text-3xl">
                     {stat.icon}
                   </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className={`w-2 h-2 rounded-full mr-2 ${stat.trend === 'up' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <span className={`text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+                    {stat.change} from last month
+                  </span>
                 </div>
               </div>
             </div>
@@ -218,7 +425,7 @@ const MainDashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-[#052954]">Student Distribution by Grade</h2>
-                <p className="text-gray-600">Enrollment across different grades</p>
+                <p className="text-gray-600">Enrollment across different grades at {schoolName}</p>
               </div>
               <FaGraduationCap className="text-[#052954] text-2xl" />
             </div>
@@ -262,21 +469,6 @@ const MainDashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-[#ffa301] mr-2"></div>
-                  <span className="text-sm text-gray-600">Primary Grades</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 rounded-full bg-[#052954] mr-2"></div>
-                  <span className="text-sm text-gray-600">Secondary Grades</span>
-                </div>
-              </div>
-              <button className="flex items-center text-[#052954] font-medium hover:text-[#052954]/80 transition-colors">
-                View Details <FaCaretRight className="ml-2" />
-              </button>
-            </div>
           </div>
 
           {/* Student Gender Distribution */}
@@ -284,7 +476,7 @@ const MainDashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-[#052954]">Gender Distribution</h2>
-                <p className="text-gray-600">Total student population breakdown</p>
+                <p className="text-gray-600">Total student population at {schoolName}</p>
               </div>
               <FaChartLine className="text-[#052954] text-2xl" />
             </div>
@@ -333,7 +525,7 @@ const MainDashboard = () => {
           </div>
         </div>
 
-        {/* Right Column - Calendar */}
+        {/* Right Column - Calendar & Quick Actions */}
         <div className="space-y-6">
           {/* Interactive Calendar */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -352,7 +544,7 @@ const MainDashboard = () => {
                   </button>
                   <button 
                     onClick={() => setCurrentDate(new Date())}
-                    className=" text-gray-700 text-sm transition-colors font-medium"
+                    className="px-3 py-1 bg-[#052954] text-white text-sm rounded-lg transition-colors font-medium hover:bg-[#052954]/90"
                   >
                     Today
                   </button>
@@ -374,135 +566,131 @@ const MainDashboard = () => {
               </div>
               
               <div className="grid grid-cols-7 gap-1 md:gap-2 p-2">
-  {calendarDays.map((day, index) => {
-    const isSelected = day.isCurrentMonth && 
-                       selectedDate.getDate() === day.date && 
-                       selectedDate.getMonth() === currentDate.getMonth();
-    
-    const today = new Date();
-    const isToday = day.isCurrentMonth && 
-                   today.getDate() === day.date && 
-                   today.getMonth() === currentDate.getMonth() && 
-                   today.getFullYear() === currentDate.getFullYear();
+                {calendarDays.map((day, index) => {
+                  const isSelected = day.isCurrentMonth && 
+                                   selectedDate.getDate() === day.date && 
+                                   selectedDate.getMonth() === currentDate.getMonth();
+                  
+                  const today = new Date();
+                  const isToday = day.isCurrentMonth && 
+                                 today.getDate() === day.date && 
+                                 today.getMonth() === currentDate.getMonth() && 
+                                 today.getFullYear() === currentDate.getFullYear();
 
-    return (
-      <button
-        key={index}
-        onClick={() => day.isCurrentMonth && setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day.date))}
-        disabled={!day.isCurrentMonth}
-        className={`
-          relative
-          h-10 md:h-12 w-10 md:w-12
-          rounded-full
-          flex items-center justify-center
-          text-sm md:text-base font-medium
-          transition-all duration-300
-          ${!day.isCurrentMonth ? 'cursor-default opacity-30' : 'cursor-pointer hover:scale-110'}
-          ${isSelected 
-            ? 'bg-[#ffa301] text-[#052954] shadow-lg shadow-[#ffa301]/40 transform scale-105'  // Yellow for selected
-            : isToday
-              ? 'bg-[#052954] text-white shadow-lg shadow-[#052954]/30'  // Dark blue for today
-              : day.isCurrentMonth
-                ? 'text-[#052954] hover:bg-[#052954]/5 hover:text-[#052954] border border-transparent hover:border-[#052954]/20'
-                : 'text-gray-400'
-          }
-        `}
-      >
-        {day.date}
-        
-        {/* Selected indicator ring */}
-        {isSelected && (
-          <div className="absolute inset-0 rounded-full ring-2 ring-[#ffa301] ring-offset-2"></div>
-        )}
-        
-        {/* Today indicator */}
-        {isToday && !isSelected && (
-          <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#ffa301]"></div>
-        )}
-      </button>
-    );
-  })}
-</div>
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => day.isCurrentMonth && setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day.date))}
+                      disabled={!day.isCurrentMonth}
+                      className={`
+                        relative
+                        h-10 md:h-12 w-10 md:w-12
+                        rounded-full
+                        flex items-center justify-center
+                        text-sm md:text-base font-medium
+                        transition-all duration-300
+                        ${!day.isCurrentMonth ? 'cursor-default opacity-30' : 'cursor-pointer hover:scale-110'}
+                        ${isSelected 
+                          ? 'bg-[#ffa301] text-[#052954] shadow-lg shadow-[#ffa301]/40 transform scale-105'
+                          : isToday
+                            ? 'bg-[#052954] text-white shadow-lg shadow-[#052954]/30'
+                            : day.isCurrentMonth
+                              ? 'text-[#052954] hover:bg-[#052954]/5 hover:text-[#052954] border border-transparent hover:border-[#052954]/20'
+                              : 'text-gray-400'
+                        }
+                      `}
+                    >
+                      {day.date}
+                      
+                      {/* Selected indicator ring */}
+                      {isSelected && (
+                        <div className="absolute inset-0 rounded-full ring-2 ring-[#ffa301] ring-offset-2"></div>
+                      )}
+                      
+                      {/* Today indicator */}
+                      {isToday && !isSelected && (
+                        <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#ffa301]"></div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Quick Stats */}
+          {/* Quick Actions for Admin */}
           <div className="bg-gradient-to-br from-[#052954] to-[#052954]/90 rounded-2xl p-6 shadow-lg">
-            <h3 className="text-white text-lg font-bold mb-4">Quick Stats</h3>
+            <h3 className="text-white text-lg font-bold mb-4">Quick Actions</h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center mr-3">
-                    <FaBook className="text-white" />
-                  </div>
-                  <div>
-                    <p className="text-white/80 text-sm">Classes Today</p>
-                    <p className="text-white font-bold">42 Active</p>
-                  </div>
-                </div>
-                <div className="text-white/60 text-sm">↗ 85%</div>
-              </div>
+              <button 
+                onClick={() => navigate("/manage-students")}
+                className="w-full text-left p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors flex items-center text-white"
+              >
+                <FaUsers className="mr-3" />
+                Manage Students
+              </button>
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center mr-3">
-                    <FaUsers className="text-white" />
-                  </div>
-                  <div>
-                    <p className="text-white/80 text-sm">Attendance Rate</p>
-                    <p className="text-white font-bold">94.2%</p>
-                  </div>
-                </div>
-                <div className="text-white/60 text-sm">↗ 2.3%</div>
-              </div>
+              <button 
+                onClick={() => navigate("/manage-teachers")}
+                className="w-full text-left p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors flex items-center text-white"
+              >
+                <FaChalkboardTeacher className="mr-3" />
+                Manage Teachers
+              </button>
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center mr-3">
-                    <FaDollarSign className="text-white" />
-                  </div>
-                  <div>
-                    <p className="text-white/80 text-sm">Revenue Today</p>
-                    <p className="text-white font-bold">$8,450</p>
-                  </div>
-                </div>
-                <div className="text-[#ffa301] text-sm font-medium">+ $1,230</div>
-              </div>
+              <button 
+                onClick={() => navigate("/reports")}
+                className="w-full text-left p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors flex items-center text-white"
+              >
+                <FaChartLine className="mr-3" />
+                View Reports
+              </button>
+              
+              <button 
+                onClick={() => navigate("/school-settings")}
+                className="w-full text-left p-3 bg-white/10 rounded-lg hover:bg-white/20 transition-colors flex items-center text-white"
+              >
+                <FaBuilding className="mr-3" />
+                School Settings
+              </button>
             </div>
-            
-            <button className="w-full mt-6 py-3 bg-[#ffa301] text-white font-medium rounded-full hover:bg-[#ffa301]/90 transition-colors flex items-center justify-center">
-              View Full Report
-              <FaCaretRight className="ml-2" />
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Bottom Info */}
+      {/* School Summary */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+        <h3 className="text-xl font-bold text-[#052954] mb-4">School Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center md:text-left">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#052954]/10 mb-3">
               <FaGraduationCap className="text-[#052954] text-xl" />
             </div>
-            <h4 className="font-bold text-[#052954] mb-1">Student Enrollment Growth</h4>
-            <p className="text-gray-600 text-sm">12% increase from last year with 18,000 new students</p>
+            <h4 className="font-bold text-[#052954] mb-1">Welcome to {schoolName}</h4>
+            <p className="text-gray-600 text-sm">
+              School Administrator: {adminName}
+            </p>
+            <p className="text-gray-600 text-sm mt-2">
+              Email: {adminData.email}
+            </p>
           </div>
           
           <div className="text-center md:text-left">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#ffa301]/10 mb-3">
               <FaChalkboardTeacher className="text-[#ffa301] text-xl" />
             </div>
-            <h4 className="font-bold text-[#052954] mb-1">Teacher Performance</h4>
-            <p className="text-gray-600 text-sm">Average satisfaction rating: 4.8/5.0 across all departments</p>
+            <h4 className="font-bold text-[#052954] mb-1">Current Statistics</h4>
+            <p className="text-gray-600 text-sm">1,500 enrolled students across 6 grades</p>
+            <p className="text-gray-600 text-sm">45 teaching staff members</p>
           </div>
           
           <div className="text-center md:text-left">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#052954]/10 mb-3">
-              <FaUserFriends className="text-[#052954] text-xl" />
+              <FaUser className="text-[#052954] text-xl" />
             </div>
-            <h4 className="font-bold text-[#052954] mb-1">Parent Engagement</h4>
-            <p className="text-gray-600 text-sm">85% of parents actively participating in school activities</p>
+            <h4 className="font-bold text-[#052954] mb-1">Your Role</h4>
+            <p className="text-gray-600 text-sm">Full administrative access to school management</p>
+            <p className="text-gray-600 text-sm">System access granted on: {adminData.createdAt ? new Date(adminData.createdAt).toLocaleDateString() : 'Recently'}</p>
           </div>
         </div>
       </div>

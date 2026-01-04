@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
@@ -134,40 +134,39 @@ const handleSubmit = async (e) => {
 
   setLoading(true);
 
-  // Handle "Remember Me"
-  if (rememberMe) {
-    localStorage.setItem('rememberedEmail', formData.email);
-    localStorage.setItem('rememberedRole', formData.role);
-  } else {
-    localStorage.removeItem('rememberedEmail');
-    localStorage.removeItem('rememberedRole');
+  const result = await login(formData.email, formData.password, formData.role);
+
+  if (!result || !result.success) {
+    setLoading(false);
+    toast.error(result?.error || "Login failed. Please try again.");
+    return;
   }
 
-  const result = await login(formData.email, formData.password, formData.role);
+  // Get role from user data
+  const userRole = result.user?.role;
   
-  if (result.success) {
-    // Check role from response (not from form)
-    if (result.role === 'super-admin') {
-      // Redirect super-admin to create school page
-      navigate('/create-school');
-    } else {
-      // For other roles, go to their respective dashboards
-      switch (result.role) {
-        case 'admin':
-          navigate('/admin');
-          break;
-        case 'teacher':
-          navigate('/teacher');
-          break;
-        case 'student':
-          navigate('/student');
-          break;
-        case 'parent':
-          navigate('/parent');
-          break;
-        default:
-          navigate('/login');
-      }
+  // Normalize role if needed
+  const normalizedRole = userRole === 'super_admin' ? 'super-admin' : userRole;
+  
+  // Route based on role
+  if (normalizedRole === 'super-admin') {
+    navigate('/create-school');
+  } else {
+    switch (normalizedRole) {
+      case 'admin':
+        navigate('/admin');
+        break;
+      case 'teacher':
+        navigate('/teacher');
+        break;
+      case 'student':
+        navigate('/student');
+        break;
+      case 'parent':
+        navigate('/parent');
+        break;
+      default:
+        navigate('/login');
     }
   }
   
@@ -253,7 +252,7 @@ const handleSubmit = async (e) => {
             <div className="relative z-10 h-full flex flex-col justify-center">
               <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-[#ffa301] to-[#ff8c00] shadow-lg">
+                  <div className="p-3 rounded-xl bg-white shadow-lg">
                     {getRoleIcon()}
                   </div>
                   <div>
@@ -265,6 +264,15 @@ const handleSubmit = async (e) => {
                 <p className="text-sm md:text-base text-blue-100 mb-6 max-w-md">
                   Select your role and log in to access your personalized dashboard.
                 </p>
+
+                <div className="flex flex-col items-start justify-start space-y-2 mb-4">
+                  <p className="text-white text-md">
+                    Want to create a Super Admin?
+                  </p>
+                  <Link to="/create-super">
+                    <button className="rounded-full px-6 py-2 cursor-pointer bg-[#ffa301]">Create SuperAdmin</button>
+                  </Link>
+                </div>
                 
                 {/* Role Benefits Card */}
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20">

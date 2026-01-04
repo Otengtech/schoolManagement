@@ -8,6 +8,7 @@ import CreateSchoolPage from './pages/createSchool/SchoolPage';
 import CreateAdmin from './pages/CreateAdmin';
 import AdminPage from './pages/admin/AdminPage';
 import CreateSuper from './pages/CreateSuper';
+import SuperAdminManPage from './pages/SuperAdminManPage';
 
 function App() {
   return (
@@ -24,6 +25,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="super-admin">
                 <CreateSchoolPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/manage" 
+            element={
+              <ProtectedRoute requiredRole="super-admin">
+                <SuperAdminManPage />
               </ProtectedRoute>
             } 
           />

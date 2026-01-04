@@ -12,6 +12,7 @@ import {
   FaPhone, FaSignOutAlt, FaShieldAlt, FaBook
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useAuth } from '../../../context/AuthContext';
 
 const MainDashboard = () => {
   // State Management
@@ -21,6 +22,7 @@ const MainDashboard = () => {
   const [adminData, setAdminData] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { logout: authLogout } = useAuth();
 
   // Initialize on component mount
   useEffect(() => {
@@ -116,12 +118,29 @@ const MainDashboard = () => {
   };
 
   // Logout handler
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('currentAdmin'); // Clear the stored admin data too
-    toast.success("Logged out successfully");
-    navigate("/login");
+  const Logout = () => {
+    try {
+      // Clear session data only
+      const currentEmail = localStorage.getItem('currentActiveEmail');
+      if (currentEmail) {
+        localStorage.removeItem(`currentAdmin_${currentEmail}`);
+        localStorage.removeItem(`token_${currentEmail}`);
+      }
+      
+      // Clear general session data
+      localStorage.removeItem('currentActiveEmail');
+      localStorage.removeItem('token');
+      localStorage.removeItem('currentAdmin');
+      
+      // Use auth context logout
+      authLogout();
+      
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Logout failed");
+    }
   };
 
   // Calendar generation
@@ -277,7 +296,7 @@ const MainDashboard = () => {
               </span>
             </div>
             <button
-              onClick={handleLogout}
+              onClick={authLogout}
               className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors font-medium"
             >
               <FaSignOutAlt />

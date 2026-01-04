@@ -1,4 +1,4 @@
-// AuthContext.jsx - Simple version without refresh
+// AuthContext.jsx
 import React, { createContext, useState, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(false);
 
-  // Simple login function
   const login = async (email, password) => {
     try {
       setLoading(true);
@@ -30,18 +29,32 @@ export const AuthProvider = ({ children }) => {
         password
       });
     
-      
       const { accessToken, user: userData } = response.data;
       
-      // Store token and user in localStorage
+      // Store data with email-based keys to prevent overwriting
+      const adminEmail = userData.email;
+      
+      // Store with email-specific keys
+      localStorage.setItem(`token_${adminEmail}`, accessToken);
+      localStorage.setItem(`user_${adminEmail}`, JSON.stringify(userData));
+      
+      // Store which admin is currently active
+      localStorage.setItem('currentActiveEmail', adminEmail);
+      
+      // Also store in regular keys for backward compatibility
       localStorage.setItem('token', accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Store additional admin data if available
+      if (userData.role === 'admin') {
+        localStorage.setItem(`currentAdmin_${adminEmail}`, JSON.stringify(userData));
+      }
       
       // Set state
       setToken(accessToken);
       setUser(userData);
       
-      toast.success(`Welcome back, ${userData.name || userData.firstName || 'User'}!`);
+      toast.success(`Welcome back, ${userData.firstName || 'Admin'}!`);
       
       return { 
         success: true, 
@@ -68,30 +81,65 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Simple authentication check
   const isAuthenticated = () => {
+    // Check if any admin is logged in
+    const currentEmail = localStorage.getItem('currentActiveEmail');
+    if (currentEmail) {
+      return !!localStorage.getItem(`token_${currentEmail}`);
+    }
+    
+    // Fallback to old method
     const storedToken = localStorage.getItem('token');
-    return !!storedToken; // Just check if token exists
+    return !!storedToken;
   };
 
-  // Simple logout
   const logout = () => {
+    // Clear all data for current admin
+    const currentEmail = localStorage.getItem('currentActiveEmail');
+    if (currentEmail) {
+      localStorage.removeItem(`token_${currentEmail}`);
+      localStorage.removeItem(`user_${currentEmail}`);
+      localStorage.removeItem(`currentAdmin_${currentEmail}`);
+    }
+    
+    // Clear general data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('currentActiveEmail');
+    
     setToken(null);
     setUser(null);
     toast.info('Logged out successfully');
     window.location.href = '/login';
   };
 
-  // Get current user
   const getCurrentUser = () => {
     try {
+      // Try to get current admin by email first
+      const currentEmail = localStorage.getItem('currentActiveEmail');
+      if (currentEmail) {
+        const userStr = localStorage.getItem(`user_${currentEmail}`);
+        if (userStr) return JSON.parse(userStr);
+      }
+      
+      // Fallback to old method
       const userStr = localStorage.getItem('user');
       return userStr ? JSON.parse(userStr) : null;
     } catch {
       return null;
     }
+  };
+
+  // Get all stored admin emails (for debugging)
+  const getAllAdminEmails = () => {
+    const emails = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('user_')) {
+        emails.push(key.replace('user_', ''));
+      }
+    }
+    return emails;
   };
 
   return (
@@ -103,7 +151,8 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAuthenticated,
-        getCurrentUser
+        getCurrentUser,
+        getAllAdminEmails
       }}
     >
       {children}

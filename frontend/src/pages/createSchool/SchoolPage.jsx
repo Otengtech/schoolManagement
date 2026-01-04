@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaSchool,
   FaMapMarkerAlt,
@@ -210,6 +210,15 @@ const handleSubmit = async (e) => {
                   Register a new educational institution with the essential
                   details.
                 </p>
+
+                <div className="flex flex-col items-start justify-start space-y-2 mb-4">
+                  <p className="text-white text-md">
+                    Want to manage the system?
+                  </p>
+                  <Link to="/manage">
+                    <button className="rounded-full px-6 py-2 cursor-pointer bg-[#ffa301]">Manage System</button>
+                  </Link>
+                </div>
 
                 {/* Features Preview Card */}
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 mb-6">

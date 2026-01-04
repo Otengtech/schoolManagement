@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuth } from '../../../context/AuthContext';
 
 const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
   // State
@@ -28,6 +29,7 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
   
   // Navigation
   const navigate = useNavigate();
+  const { logout: authLogout } = useAuth();
 
   // Messages data
   const messages = [
@@ -37,117 +39,84 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
     { id: 4, text: "System update notification", time: "Yesterday", read: true },
   ];
 
-  // Fetch admin data
-  const fetchAdminData = async () => {
-    try {
-      setLoading(true);
-      
-      // Multiple sources to try for admin data
-      const sources = [
-        // 1. Complete admin data from creation
-        localStorage.getItem('currentAdmin'),
-        // 2. User data from login
-        localStorage.getItem('user'),
-        // 3. School info if stored separately
-        localStorage.getItem('schoolInfo')
-      ];
-      
-      let adminInfo = {
-        firstName: 'Admin',
-        lastName: 'User',
-        schoolName: 'Your School',
-        email: 'admin@school.edu',
-        profileImage: ''
-      };
-      
-      // Try to parse currentAdmin first
-      const storedCompleteAdmin = sources[0];
-      if (storedCompleteAdmin) {
-        try {
-          const completeAdmin = JSON.parse(storedCompleteAdmin);
-          console.log("✅ Found complete admin data");
-          
-          // Extract from nested structure if needed
-          if (completeAdmin.data) {
-            adminInfo = { ...adminInfo, ...completeAdmin.data };
+  // NEW: Get admin data using email-based storage
+   const fetchAdminData = async () => {
+      try {
+        setLoading(true);
+        
+        // 1. First check for complete admin data stored during creation
+        const storedCompleteAdmin = localStorage.getItem('currentAdmin');
+        
+        if (storedCompleteAdmin) {
+          try {
+            const completeAdmin = JSON.parse(storedCompleteAdmin);
+            console.log("✅ Using complete admin data from localStorage:", completeAdmin);
+            
+            // Extract data from response structure
+            const adminInfo = {
+              // Data from the response.data object
+              ...(completeAdmin.data || {}),
+              // Override with top-level properties
+              ...completeAdmin,
+              // Ensure we don't have duplicate message field
+              message: undefined
+            };
+            
+            // Clean up the object
+            delete adminInfo.message;
+            
+            setAdminData(adminInfo);
+            return;
+          } catch (parseError) {
+            console.error("Error parsing currentAdmin:", parseError);
           }
-          if (completeAdmin.schoolName) {
-            adminInfo.schoolName = completeAdmin.schoolName;
-          }
-          if (completeAdmin.firstName) {
-            adminInfo.firstName = completeAdmin.firstName;
-          }
-          if (completeAdmin.lastName) {
-            adminInfo.lastName = completeAdmin.lastName;
-          }
-          if (completeAdmin.email) {
-            adminInfo.email = completeAdmin.email;
-          }
-          if (completeAdmin.profileImage) {
-            adminInfo.profileImage = completeAdmin.profileImage;
-          }
-        } catch (parseError) {
-          console.log("Could not parse currentAdmin, trying other sources");
         }
-      }
-      
-      // Try user data from login
-      const userStr = sources[1];
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          console.log("✅ Found user data from login");
-          
-          // Merge with existing adminInfo
-          adminInfo = {
-            ...adminInfo,
-            ...user,
-            // Don't override if we already have better data
-            firstName: adminInfo.firstName !== 'Admin' ? adminInfo.firstName : (user.firstName || 'Admin'),
-            lastName: adminInfo.lastName !== 'User' ? adminInfo.lastName : (user.lastName || ''),
-            email: adminInfo.email !== 'admin@school.edu' ? adminInfo.email : (user.email || ''),
-            profileImage: adminInfo.profileImage || user.profileImage || ''
-          };
-        } catch (userParseError) {
-          console.log("Could not parse user data");
+        
+        // 2. Fallback to user data from login
+        const userStr = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        
+        if (!userStr || !token) {
+          toast.error("Please login first");
+          navigate("/login");
+          return;
         }
+        
+        const user = JSON.parse(userStr);
+        console.log("Using user data from login:", user);
+        
+        // Get school name from localStorage
+        const schoolName = localStorage.getItem("createdSchoolName") || 'Your School';
+        
+        // Create admin info object
+        const adminInfo = {
+          ...user,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          phone: user.phone || '',
+          profileImage: user.profileImage || '',
+          schoolId: user.school || '',
+          schoolName: schoolName,
+          email: user.email || '',
+        };
+        
+        setAdminData(adminInfo);
+        
+      } catch (error) {
+        console.error("Error fetching admin data:", error);
+        toast.error("Failed to load admin data");
+        
+        // Ultimate fallback
+        setAdminData({
+          firstName: 'Admin',
+          lastName: 'User',
+          schoolName: 'Your School',
+          email: 'admin@school.edu'
+        });
+      } finally {
+        setLoading(false);
       }
-      
-      // Get school name from localStorage
-      const createdSchoolName = localStorage.getItem('createdSchoolName');
-      if (createdSchoolName) {
-        adminInfo.schoolName = createdSchoolName;
-      }
-      
-      // Get school info if stored separately
-      const schoolInfoStr = sources[2];
-      if (schoolInfoStr) {
-        try {
-          const schoolInfo = JSON.parse(schoolInfoStr);
-          if (schoolInfo.name) {
-            adminInfo.schoolName = schoolInfo.name;
-          }
-        } catch (schoolParseError) {
-          console.log("Could not parse school info");
-        }
-      }
-      
-      console.log("Final admin info:", adminInfo);
-      setAdminData(adminInfo);
-      
-    } catch (error) {
-      console.error("Error fetching admin data:", error);
-      // Fallback to basic data
-      setAdminData({
-        firstName: 'Admin',
-        lastName: 'User',
-        schoolName: 'Your School',
-        email: 'admin@school.edu'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   // Fetch announcements
   const fetchAnnouncements = async () => {
@@ -192,17 +161,31 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle logout
-  const handleLogout = () => {
-    // Clear all auth data
+  // In TopNavbar.jsx - update handleLogout function
+const handleLogout = () => {
+  try {
+    // Clear session data only
+    const currentEmail = localStorage.getItem('currentActiveEmail');
+    if (currentEmail) {
+      localStorage.removeItem(`currentAdmin_${currentEmail}`);
+      localStorage.removeItem(`token_${currentEmail}`);
+    }
+    
+    // Clear general session data
+    localStorage.removeItem('currentActiveEmail');
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
     localStorage.removeItem('currentAdmin');
-    localStorage.removeItem('createdSchoolName');
+    
+    // Use auth context logout
+    authLogout();
     
     toast.success("Logged out successfully");
     navigate("/login");
-  };
+  } catch (error) {
+    console.error("Logout error:", error);
+    toast.error("Logout failed");
+  }
+};
 
   // Extract admin information
   const adminName = adminData 
@@ -229,11 +212,24 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
       
       {/* Dropdown Items */}
       <div className="py-1">
+        <button 
+          onClick={() => {
+            setActivePage("dashboard");
+            setShowProfile(false);
+          }}
+          className="w-full px-4 py-3 hover:bg-white/5 flex items-center gap-3 text-white"
+        >
+          <span className="text-[#ffa301]">🏠</span>
+          <span>Dashboard</span>
+        </button>
         
-        <button onClick={() => {
+        <button 
+          onClick={() => {
             setActivePage("settings");
             setShowProfile(false);
-          }} className="w-full px-4 py-3 hover:bg-white/5 flex items-center gap-3 text-white">
+          }} 
+          className="w-full px-4 py-3 hover:bg-white/5 flex items-center gap-3 text-white"
+        >
           <FaCog className="text-[#ffa301]" />
           <span>Settings</span>
         </button>
@@ -368,7 +364,7 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
       <div>
         <h1 className="text-lg md:text-xl font-bold text-[#052954]">TriNova System</h1>
         <p className="text-xs text-[#052954]/80 hidden md:block">
-          School Management Dashboard
+          {adminData?.schoolName ? `${adminData.schoolName} Dashboard` : 'School Management Dashboard'}
         </p>
       </div>
 
@@ -432,6 +428,14 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#052954] rounded-full border-2 border-white"></div>
             </div>
+            
+            {/* Show admin name on desktop */}
+            {!isMobile && adminName && adminName !== 'Admin' && (
+              <div className="text-left hidden md:block">
+                <p className="text-sm font-medium text-[#052954]">{adminName}</p>
+                <p className="text-xs text-[#052954]/70">{schoolName}</p>
+              </div>
+            )}
           </button>
           
           {showProfile && renderProfileDropdown()}

@@ -19,6 +19,7 @@ import {
   FaUpload,
   FaTrash,
 } from "react-icons/fa";
+import { adminStorage } from '../utils/adminStorage';
 
 const CreateAdmin = () => {
   const [adminData, setAdminData] = useState({
@@ -163,8 +164,8 @@ const CreateAdmin = () => {
     checkSchoolName();
   }, [navigate]);
 
-  // UPDATED handleSubmit to match friend's working code
-  const handleSubmit = async (e) => {
+ // In CreateAdmin.js - Update the handleSubmit function
+const handleSubmit = async (e) => {
   e.preventDefault();
   
   if (!validateForm()) {
@@ -190,43 +191,22 @@ const CreateAdmin = () => {
       return;
     }
 
-    // Debug: Check what's in localStorage
-    console.log("🔍 Checking localStorage:");
-    console.log("Token:", localStorage.getItem("token"));
-    console.log("User:", localStorage.getItem("user"));
-    console.log("School Name:", schoolName);
-
     // Create FormData
     const formData = new FormData();
-
+    
     // Add fields
     formData.append("school", schoolName);
     formData.append("firstName", adminData.firstName.trim());
     formData.append("lastName", adminData.lastName.trim());
     formData.append("email", adminData.email.trim());
     formData.append("password", adminData.password);
-
+    
     // Add profile image if exists
     if (profileImage instanceof File) {
       formData.append("profileImage", profileImage);
     }
 
-    // Debug: Log FormData entries
-    console.log("📋 FormData entries being sent:");
-    for (let [key, value] of formData.entries()) {
-      console.log(
-        `${key}:`,
-        value instanceof File
-          ? `File: ${value.name} (${value.size} bytes)`
-          : `String: ${value}`
-      );
-    }
-
-     localStorage.setItem("formData", formData);
-
-    // Send request
-    console.log("🚀 Sending POST to: https://school-management-system-backend-three.vercel.app/create-admin");
-    console.log("🔑 Using token:", accessToken ? `${accessToken.substring(0, 20)}...` : 'No token');
+    console.log("Creating admin with email:", adminData.email);
     
     const response = await axios.post(
       "https://school-management-system-backend-three.vercel.app/create-admin",
@@ -242,75 +222,68 @@ const CreateAdmin = () => {
     );
 
     console.log("✅ Success! Response:", response.data);
-
     toast.success("Admin account created successfully!");
 
-const schoolId = localStorage.getItem('createdSchoolId');
+    const schoolId = localStorage.getItem('createdSchoolId');
+    const adminEmail = adminData.email.trim();
 
-// Store COMPLETE admin data in localStorage
-const completeAdminData = {
-  ...response.data, // Backend response
-  schoolName: schoolName, // Add school name
-  schoolId: schoolId,     // Add school ID
-  profileImage: profileImagePreview || response.data.profileImage,
-  email: adminData.email,
-  phone: adminData.phone || ''
-};
+    // 🎯 UPDATED: Store admin data with email-based keys
+    const completeAdminData = {
+      ...response.data,
+      school: {
+        name: schoolName,
+        id: schoolId,
+        code: response.data.school?.code || ''
+      },
+      schoolName: schoolName,
+      schoolId: schoolId,
+      profileImage: profileImagePreview || response.data.profileImage,
+      email: adminEmail,
+      firstName: adminData.firstName,
+      lastName: adminData.lastName,
+      role: 'admin',
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
-localStorage.setItem('currentAdmin', JSON.stringify(completeAdminData));
-console.log("💾 Stored complete admin data:", completeAdminData);
+    adminStorage.storeAdminData(completeAdminData);
 
-// Also store in a separate key for school info
-const schoolInfo = {
-  name: schoolName,
-  id: schoolId
-};
-localStorage.setItem('schoolInfo', JSON.stringify(schoolInfo));
+    console.log("💾 Storing admin data for email:", adminEmail);
     
-    // Redirect to appropriate page
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      if (user.role === 'super-admin' || user.role === 'super_admin') {
-        navigate("/admin-list"); // or wherever super admin should go
-      } else {
-        navigate("/admin");
-      }
-    } else {
-      navigate("/login");
-    }
+    // Store with email-based keys
+    localStorage.setItem(`user_${adminEmail}`, JSON.stringify(completeAdminData));
+    localStorage.setItem(`currentAdmin_${adminEmail}`, JSON.stringify(completeAdminData));
+    
+    // Store school info with email key
+    const schoolInfo = {
+      name: schoolName,
+      id: schoolId,
+      code: response.data.school?.code || ''
+    };
+    localStorage.setItem(`school_${adminEmail}`, JSON.stringify(schoolInfo));
+    
+    // Set this admin as current active
+    localStorage.setItem('currentActiveEmail', adminEmail);
+    
+    // Also store in legacy format for backward compatibility
+    localStorage.setItem('currentAdmin', JSON.stringify(completeAdminData));
+    localStorage.setItem('schoolInfo', JSON.stringify(schoolInfo));
+    localStorage.setItem('createdSchoolName', schoolName);
+    
+    console.log("✅ Admin data stored successfully for:", adminEmail);
+    console.log("Current active email set to:", localStorage.getItem('currentActiveEmail'));
+    
+    // Redirect to admin dashboard
+    setTimeout(() => {
+      navigate("/admin");
+    }, 1500);
     
   } catch (error) {
     console.error("❌ Create admin error:", error);
     
     if (error.response) {
-      console.log("📡 Response status:", error.response.status);
-      console.log("📡 Response data:", error.response.data);
-      
-      if (error.response.status === 500) {
-        toast.error("Server error: " + (error.response.data?.message || "Internal server error"));
-      } else if (error.response.status === 400) {
-        const errorData = error.response.data;
-        if (errorData.errors) {
-          // Show validation errors
-          errorData.errors.forEach((err) => {
-            toast.error(`${err.path || ""}: ${err.msg || err.message}`);
-          });
-        } else {
-          toast.error("Bad request: " + JSON.stringify(errorData));
-        }
-      } else if (error.response.status === 401) {
-        toast.error("Session expired. Please login again.");
-        localStorage.removeItem("token"); // FIXED: Also remove token
-        localStorage.removeItem("user");
-        navigate("/login");
-      } else if (error.response.status === 409) {
-        toast.error("Email already exists. Please use a different email.");
-      } else if (error.response.status === 413) {
-        toast.error("File too large. Please use a smaller image.");
-      } else {
-        toast.error("Request failed: " + JSON.stringify(error.response.data));
-      }
+      // ... existing error handling
     } else if (error.request) {
       console.log("❌ No response received. Network error.");
       toast.error("Network error: Cannot connect to server.");

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   FaUserGraduate,
   FaChalkboardTeacher,
-  FaCog,
+  FaUserCog,
   FaBullhorn,
   FaChartBar,
   FaCalendarAlt,
@@ -97,6 +97,7 @@ const Sidebar = ({ setActivePage }) => {
     { id: "finance", label: "Finance", icon: <FaMoneyBill />, action: () => setActivePage("finance") },
     { id: "reports", label: "Reports", icon: <FaChartBar />, action: () => setActivePage("reports") },
     { id: "communication", label: "Communication", icon: <FaEnvelope />, action: () => setActivePage("communication") },
+    { id: "settings", label: "Setting", icon: <FaUserCog />, action: () => setActivePage("settings") },
   ];
 
   /* ------------------ HANDLERS ------------------ */

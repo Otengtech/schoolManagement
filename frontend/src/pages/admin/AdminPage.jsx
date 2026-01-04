@@ -12,6 +12,7 @@ import Classes from "./pages/ParentPage/Parents";
 import ParentAdmission from "./pages/ParentPage/ParentAdmission";
 import Parents from "./pages/ParentPage/Parents";
 import AnnouncementForm from "./pages/AnnouncementsPage/Form";
+import Setting from "./pages/SettingPage/Setting";
 import ViewAnnouncements from "./pages/AnnouncementsPage/ViewAnnouncements";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -64,6 +65,8 @@ const MainPage = () => {
         return <ViewAnnouncements />;
       case "classes":
         return <Classes />;
+      case "settings":
+        return <Setting />;
       default:
         return <MainDashboard />;
     }
@@ -77,6 +80,7 @@ const MainPage = () => {
       {/* Main Content */}
       <div className="flex-1 bg-gray-100">
         <TopNavbar
+          setActivePage={setActivePage}
           toggleSidebar={toggleSidebar}
           isSidebarOpen={isSidebarOpen}
         />

@@ -132,6 +132,9 @@ const handleSubmit = async (e) => {
     return;
   }
 
+  const schoolName = localStorage.getItem("createdSchoolName");
+  console.log(schoolName)
+
   setLoading(true);
 
   const result = await login(formData.email, formData.password, formData.role);
@@ -141,6 +144,10 @@ const handleSubmit = async (e) => {
     toast.error(result?.error || "Login failed. Please try again.");
     return;
   }
+
+  console.log("✅ Login successful. Checking localStorage:");
+console.log("Token saved:", localStorage.getItem('token'));
+console.log("User saved:", localStorage.getItem('user'));
 
   // Get role from user data
   const userRole = result.user?.role;

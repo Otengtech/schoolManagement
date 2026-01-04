@@ -176,10 +176,10 @@ const CreateAdmin = () => {
 
   try {
     const schoolName = localStorage.getItem("createdSchoolName");
-    const accessToken = localStorage.getItem("token"); // FIXED: Changed from "accessToken" to "token"
+    const accessToken = localStorage.getItem("token");
 
     if (!schoolName) {
-      toast.error("No school ID found. Please create a school first.");
+      toast.error("No school name found. Please create a school first.");
       navigate("/create-school");
       return;
     }
@@ -222,6 +222,8 @@ const CreateAdmin = () => {
       );
     }
 
+     localStorage.setItem("formData", formData);
+
     // Send request
     console.log("🚀 Sending POST to: https://school-management-system-backend-three.vercel.app/create-admin");
     console.log("🔑 Using token:", accessToken ? `${accessToken.substring(0, 20)}...` : 'No token');
@@ -241,22 +243,29 @@ const CreateAdmin = () => {
 
     console.log("✅ Success! Response:", response.data);
 
-    // Clear school data from storage
-    localStorage.removeItem("createdSchoolName");
-    localStorage.removeItem("createdSchoolId");
-
     toast.success("Admin account created successfully!");
 
-    const completeAdminData = {
-  ...response.data, // This should have firstName, lastName, etc.
-  profileImage: profileImagePreview || adminData.profileImage,
-  schoolName: adminData.schoolName,
+const schoolId = localStorage.getItem('createdSchoolId');
+
+// Store COMPLETE admin data in localStorage
+const completeAdminData = {
+  ...response.data, // Backend response
+  schoolName: schoolName, // Add school name
+  schoolId: schoolId,     // Add school ID
+  profileImage: profileImagePreview || response.data.profileImage,
   email: adminData.email,
-  phone: adminData.phone
+  phone: adminData.phone || ''
 };
 
-localStorage.setItem('createdAdmin', JSON.stringify(completeAdminData));
-console.log("💾 Stored admin data:", completeAdminData);
+localStorage.setItem('currentAdmin', JSON.stringify(completeAdminData));
+console.log("💾 Stored complete admin data:", completeAdminData);
+
+// Also store in a separate key for school info
+const schoolInfo = {
+  name: schoolName,
+  id: schoolId
+};
+localStorage.setItem('schoolInfo', JSON.stringify(schoolInfo));
     
     // Redirect to appropriate page
     const userStr = localStorage.getItem('user');

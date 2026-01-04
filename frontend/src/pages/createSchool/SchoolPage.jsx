@@ -125,9 +125,11 @@ const handleSubmit = async (e) => {
     
     // Store school name for admin creation
     localStorage.setItem("createdSchoolName", schoolData.name);
+    console.log("school name is ", localStorage.getItem("createdSchoolName"))
     
     if (response.data._id) {
       localStorage.setItem("createdSchoolId", response.data._id);
+      console.log("school id is ", localStorage.getItem("createdSchoolId"))
     }
 
     setTimeout(() => {

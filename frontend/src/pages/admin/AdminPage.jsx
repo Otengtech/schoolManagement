@@ -73,7 +73,7 @@ const MainPage = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-[100vh] overflow-hidden">
       {/* Sidebar */}
       <Sidebar setActivePage={setActivePage} isSidebarOpen={isSidebarOpen} />
 
@@ -87,7 +87,7 @@ const MainPage = () => {
 
         <div className="h-[calc(100vh-4rem)] overflow-y-auto scrollbar-hide">
           {/* Padding wrapper */}
-          <div className="pb-6">{renderPage()}</div>
+          <div className="">{renderPage()}</div>
         </div>
       </div>
     </div>

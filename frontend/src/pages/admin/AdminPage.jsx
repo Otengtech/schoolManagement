@@ -72,26 +72,29 @@ const MainPage = () => {
     }
   };
 
-  return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
-      <Sidebar setActivePage={setActivePage} isSidebarOpen={isSidebarOpen} />
-
-      {/* Main Content */}
-      <div className="flex-1 bg-gray-100">
-        <TopNavbar
-          setActivePage={setActivePage}
-          toggleSidebar={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
-        />
-
-        <div className="h-[calc(100vh-4rem)] overflow-y-auto scrollbar-hide">
-          {/* Padding wrapper */}
-          <div className="pb-6">{renderPage()}</div>
+ return (
+  <div className="flex h-screen overflow-hidden">
+    {/* Sidebar */}
+    <Sidebar setActivePage={setActivePage} isSidebarOpen={isSidebarOpen} />
+    
+    {/* Main Content */}
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* TopNavbar is now fixed and outside the scrollable area */}
+      <TopNavbar
+        setActivePage={setActivePage}
+        toggleSidebar={toggleSidebar}
+        isSidebarOpen={isSidebarOpen}
+      />
+      
+      {/* Content starts below the fixed navbar */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="pt-14">
+          {renderPage()}
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default MainPage;

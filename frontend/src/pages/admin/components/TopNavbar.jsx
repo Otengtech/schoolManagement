@@ -389,13 +389,13 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
 
   return (
     <>
-      <nav className={`fixed h-14 bg-gradient-to-r from-[#ffa301] to-[#ffa301]/90 shadow-lg flex items-center justify-between px-4 md:px-6 top-0 z-30 transition-all duration-300 ${
+      <nav className={`fixed w-full h-14 bg-gradient-to-r from-[#ffa301] to-[#ffa301]/90 shadow-lg flex items-center justify-between px-4 md:px-6 top-0 z-30 transition-all duration-300 ${
   isMobile ? 'left-0' : 
-  isSidebarOpen ? 'left-64 w-[calc(100%-16rem)]' : 'left-0'
+  isSidebarOpen ? 'left-64 w-[calc(100%-16rem)]' : 'left-0 w-full'
 }`}>
         {" "}
         {/* Left: Brand */}
-        <div>
+        <div className="ml-14 md:ml-0">
           <h1 className="text-lg md:text-xl font-bold text-[#052954]">
             TriNova System
           </h1>

@@ -87,7 +87,7 @@ const MainPage = () => {
       />
       
       {/* Content starts below the fixed navbar */}
-      <div className="flex-1 overflow-y-auto ">
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
         <div className="pt-14">
           {renderPage()}
         </div>

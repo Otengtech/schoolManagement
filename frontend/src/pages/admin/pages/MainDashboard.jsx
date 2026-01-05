@@ -264,7 +264,7 @@ const MainDashboard = () => {
   const profileImage = adminData?.profileImage;
 
   return (
-    <div className="h-full bg-gradient-to-br from-[#052954]/5 to-[#052954]/10 p-4 md:p-6 overflow-y-auto">
+    <div className="h-full bg-gradient-to-br from-[#052954]/5 to-[#052954]/10 p-4 md:p-6 overflow-x-hidden">
       {/* Header Section */}
       <header className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

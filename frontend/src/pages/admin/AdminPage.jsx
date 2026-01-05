@@ -73,7 +73,7 @@ const MainPage = () => {
   };
 
  return (
-  <div className="flex h-screen">
+  <div className="flex h-screen overflow-hidden">
     {/* Sidebar */}
     <Sidebar setActivePage={setActivePage} isSidebarOpen={isSidebarOpen} />
     
@@ -87,7 +87,7 @@ const MainPage = () => {
       />
       
       {/* Content starts below the fixed navbar */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto ">
         <div className="pt-14">
           {renderPage()}
         </div>

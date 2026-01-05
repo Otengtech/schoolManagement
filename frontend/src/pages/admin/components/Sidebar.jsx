@@ -131,7 +131,7 @@ const Sidebar = ({ setActivePage }) => {
       {isMobile && !isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed top-2 left-4 text-gray-800 p-3 rounded-lg z-50 transition-colors duration-200 bg-white shadow-md"
+          className="fixed top-2 left-4 text-gray-800 p-3 rounded-lg z-50 transition-colors duration-200"
         >
           <FaBars className="text-lg" />
         </button>

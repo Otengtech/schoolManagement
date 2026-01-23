@@ -73,7 +73,7 @@ const MainPage = () => {
   };
 
  return (
-  <div className="flex h-[95vh] overflow-hidden">
+  <div className="flex h-screen overflow-hidden">
     {/* Sidebar */}
     <Sidebar setActivePage={setActivePage} isSidebarOpen={isSidebarOpen} />
     

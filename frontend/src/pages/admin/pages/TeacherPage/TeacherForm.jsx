@@ -84,17 +84,6 @@ const TeacherForm = () => {
       return;
     }
 
-    if (name === "employmentDate") {
-      const empDate = new Date(value);
-      const today = new Date();
-      let experience = today.getFullYear() - empDate.getFullYear();
-      const m = today.getMonth() - empDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < empDate.getDate())) experience--;
-      
-      setForm((p) => ({ ...p, employmentDate: value, experience: experience > 0 ? experience.toString() : "0" }));
-      return;
-    }
-
     setForm((p) => ({ ...p, [name]: value }));
   };
 
@@ -271,18 +260,6 @@ const TeacherForm = () => {
               placeholder="Select religion"
             />
           </div>
-
-          <div className="col-span-2">
-            <label className={labelClass}>Address</label>
-            <input
-              type="text"
-              name="address"
-              value={form.address}
-              placeholder="Enter full address"
-              className={inputClass}
-              onChange={handleChange}
-            />
-          </div>
         </Section>
 
         {/* PROFESSIONAL INFORMATION */}
@@ -322,51 +299,6 @@ const TeacherForm = () => {
               required
             />
           </div>
-
-          <div>
-            <label className={labelClass}>Employment Date *</label>
-            <div className="relative">
-              <FaCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="date"
-                name="employmentDate"
-                value={form.employmentDate}
-                className={`${inputClass} pl-10`}
-                onChange={handleChange}
-                required
-                max={new Date().toISOString().split('T')[0]}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={labelClass}>Years of Experience</label>
-            <input
-              type="text"
-              name="experience"
-              value={form.experience}
-              placeholder="Auto-calculated"
-              className={`${inputClass} bg-gray-50`}
-              readOnly
-            />
-          </div>
-
-          <div>
-            <label className={labelClass}>Salary ($)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
-              <input
-                type="number"
-                name="salary"
-                value={form.salary}
-                placeholder="Enter salary"
-                className={`${inputClass} pl-8`}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-              />
-            </div>
-          </div>
         </Section>
 
         {/* CONTACT INFORMATION */}
@@ -379,7 +311,7 @@ const TeacherForm = () => {
                 type="email"
                 name="email"
                 value={form.email}
-                placeholder="teacher@school.edu"
+                placeholder="teacher@example.com"
                 className={`${inputClass} pl-10`}
                 onChange={handleChange}
                 required
@@ -399,21 +331,6 @@ const TeacherForm = () => {
                 className={`${inputClass} pl-10`}
                 onChange={handleChange}
                 required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={labelClass}>Emergency Contact</label>
-            <div className="relative">
-              <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="tel"
-                name="emergencyContact"
-                value={form.emergencyContact}
-                placeholder="Emergency contact number"
-                className={`${inputClass} pl-10`}
-                onChange={handleChange}
               />
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   FaUser,
@@ -12,11 +12,11 @@ import {
   FaVenus,
   FaGenderless,
   FaChevronDown,
-  FaBirthdayCake,
   FaPhone,
-  FaHome,
   FaIdCard,
-  FaFlag
+  FaCalendar,
+  FaSchool,
+  FaBuilding
 } from "react-icons/fa";
 
 const StudentAdmission = () => {
@@ -25,26 +25,31 @@ const StudentAdmission = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
+    // Student Personal Information
     firstName: "",
     lastName: "",
     gender: "",
     dateOfBirth: "",
-    age: "",
-    religion: "",
-    nationality: "",
+    
+    // Academic Information
     studentId: "",
+    admissionYear: new Date().getFullYear().toString(),
+    admissionTerm: "",
     level: "",
-    course: "",
-    parentName: "",
-    parentContact: "",
-    email: "",
-    phone: "",
-    address: "",
+    className: "",
+    
+    // Parent Information
+    parentFirstName: "",
+    parentLastName: "",
+    parentEmail: "",
+    parentPhone: "",
+    
+    // Student Photo
     studentPhoto: null,
   });
 
   // API Configuration
-  const API_BASE_URL = import.meta.env.VITE_API_URI || "http://localhost:5000/api";
+  const API_BASE_URL = import.meta.env.VITE_API_URI || "https://school-management-system-backend-three.vercel.app";
 
   // Options Data
   const genderOptions = [
@@ -53,90 +58,139 @@ const StudentAdmission = () => {
     { value: "other", label: "Other", icon: <FaGenderless className="inline mr-2" /> },
   ];
 
-  const religionOptions = [
-    "Christianity",
-    "Islam",
-    "Traditional",
-    "Hinduism",
-    "Buddhism",
-    "Other"
+  const levelOptions = [
+    "JHS 1",
+    "JHS 2", 
+    "JHS 3",
+    "SHS 1",
+    "SHS 2",
+    "SHS 3",
   ];
 
-  const nationalityOptions = [
-    "Ghanaian",
-    "Nigerian",
-    "Ivorian",
-    "American",
-    "British",
-    "Canadian",
-    "Indian",
-    "Chinese",
-    "Other"
+  const classOptions = {
+    "JHS 1": ["JHS 1A", "JHS 1B", "JHS 1C", "JHS 1D"],
+    "JHS 2": ["JHS 2A", "JHS 2B", "JHS 2C", "JHS 2D"],
+    "JHS 3": ["JHS 3A", "JHS 3B", "JHS 3C", "JHS 3D"],
+    "SHS 1": ["SHS 1A", "SHS 1B", "SHS 1C", "SHS 1D"],
+    "SHS 2": ["SHS 2A", "SHS 2B", "SHS 2C", "SHS 2D"],
+    "SHS 3": ["SHS 3A", "SHS 3B", "SHS 3C", "SHS 3D"],
+  };
+
+  const admissionTermOptions = [
+    "term1",
+    "term2",
+    "term3"
   ];
+
+  const admissionYearOptions = Array.from({ length: 5 }, (_, i) => {
+    const year = new Date().getFullYear() + i;
+    return year.toString();
+  });
+
+  // Calculate class options based on selected level
+  const availableClassOptions = formData.level ? classOptions[formData.level] || [] : [];
 
   // Event Handlers
   const handleChange = (e) => {
     const { name, value, files } = e.target;
 
     if (name === "studentPhoto" && files?.[0]) {
+      // Validate file size (max 5MB)
+      if (files[0].size > 5 * 1024 * 1024) {
+        setErrors({ ...errors, studentPhoto: "File size must be less than 5MB" });
+        return;
+      }
+      
+      // Validate file type
+      const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+      if (!validTypes.includes(files[0].type)) {
+        setErrors({ ...errors, studentPhoto: "Only JPG, PNG, GIF files are allowed" });
+        return;
+      }
+      
       setFormData({ ...formData, studentPhoto: files[0] });
       setPreviewImage(URL.createObjectURL(files[0]));
       if (errors.studentPhoto) setErrors({ ...errors, studentPhoto: "" });
       return;
     }
 
-    if (name === "dateOfBirth") {
-      const birthYear = new Date(value).getFullYear();
-      const currentYear = new Date().getFullYear();
-      const age = currentYear - birthYear;
+    // Reset className when level changes
+    if (name === "level") {
       setFormData({ 
         ...formData, 
-        dateOfBirth: value, 
-        age: age.toString() 
+        [name]: value,
+        className: "" 
       });
-      if (errors.dateOfBirth || errors.age) {
-        setErrors({ ...errors, dateOfBirth: "", age: "" });
-      }
-      return;
+    } else {
+      setFormData({ ...formData, [name]: value });
     }
 
-    setFormData({ ...formData, [name]: value });
     if (errors[name]) setErrors({ ...errors, [name]: "" });
   };
 
   const handleGenderChange = (value) => {
-    const updatedGender = formData.gender.includes(value)
-      ? formData.gender.filter((g) => g !== value)
-      : [...formData.gender, value];
-    
-    setFormData({ ...formData, gender: updatedGender });
+    setFormData({ ...formData, gender: value });
     if (errors.gender) setErrors({ ...errors, gender: "" });
   };
+
+  // Auto-generate student ID
+  useEffect(() => {
+    if (!formData.studentId && formData.admissionYear && formData.level && formData.firstName && formData.lastName) {
+      const levelCode = formData.level.includes("JHS") ? "JHS" : "SHS";
+      const year = formData.admissionYear.slice(-2);
+      const initials = `${formData.firstName.charAt(0)}${formData.lastName.charAt(0)}`.toUpperCase();
+      const randomNum = Math.floor(100 + Math.random() * 900);
+      
+      const generatedId = `${levelCode}-${year}${randomNum}`;
+      setFormData(prev => ({ ...prev, studentId: generatedId }));
+    }
+  }, [formData.firstName, formData.lastName, formData.level, formData.admissionYear]);
 
   // Form Validation
   const validateForm = () => {
     const newErrors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[\d\s\-\+\(\)]{10,}$/;
+    const phoneRegex = /^0[23459]\d{8}$/; // Ghana phone number format
 
     // Required fields validation
     if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
+    else if (formData.firstName.length < 2) newErrors.firstName = "First name must be at least 2 characters";
+    
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-    if (formData.gender.length === 0) newErrors.gender = "Please select gender";
+    else if (formData.lastName.length < 2) newErrors.lastName = "Last name must be at least 2 characters";
+    
+    if (!formData.gender) newErrors.gender = "Please select gender";
+    
     if (!formData.dateOfBirth) newErrors.dateOfBirth = "Date of birth is required";
-    if (!formData.age) newErrors.age = "Age is required";
-    if (!formData.religion) newErrors.religion = "Religion is required";
-    if (!formData.nationality) newErrors.nationality = "Nationality is required";
+    else {
+      const dob = new Date(formData.dateOfBirth);
+      const today = new Date();
+      if (dob >= today) newErrors.dateOfBirth = "Date of birth must be in the past";
+    }
+    
     if (!formData.studentId.trim()) newErrors.studentId = "Student ID is required";
-    if (!formData.level.trim()) newErrors.level = "Level is required";
-    if (!formData.course.trim()) newErrors.course = "Course is required";
-    if (!formData.parentName.trim()) newErrors.parentName = "Parent name is required";
-    if (!formData.parentContact.trim()) newErrors.parentContact = "Parent contact is required";
-    if (!formData.email.trim()) newErrors.email = "Email is required";
-    else if (!emailRegex.test(formData.email)) newErrors.email = "Invalid email format";
-    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
-    else if (!phoneRegex.test(formData.phone)) newErrors.phone = "Invalid phone number";
-    if (!formData.address.trim()) newErrors.address = "Address is required";
+    else if (formData.studentId.length < 3) newErrors.studentId = "Student ID must be at least 3 characters";
+    
+    if (!formData.admissionYear) newErrors.admissionYear = "Admission year is required";
+    
+    if (!formData.admissionTerm) newErrors.admissionTerm = "Admission term is required";
+    
+    if (!formData.level) newErrors.level = "Level is required";
+    
+    if (!formData.className) newErrors.className = "Class is required";
+    
+    // Parent Information
+    if (!formData.parentFirstName.trim()) newErrors.parentFirstName = "Parent first name is required";
+    if (!formData.parentLastName.trim()) newErrors.parentLastName = "Parent last name is required";
+    
+    if (!formData.parentEmail.trim()) newErrors.parentEmail = "Parent email is required";
+    else if (!emailRegex.test(formData.parentEmail)) newErrors.parentEmail = "Invalid email format";
+    
+    if (!formData.parentPhone.trim()) newErrors.parentPhone = "Parent phone is required";
+    else if (!phoneRegex.test(formData.parentPhone)) {
+      newErrors.parentPhone = "Invalid Ghana phone number (e.g., 0241234567)";
+    }
+    
     if (!formData.studentPhoto) newErrors.studentPhoto = "Student photo is required";
 
     setErrors(newErrors);
@@ -144,66 +198,81 @@ const StudentAdmission = () => {
   };
 
   // Form Submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      alert("Please fix all errors before submitting");
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    setLoading(true);
-    try {
-      const submitData = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === "gender") {
-          submitData.append(key, JSON.stringify(value));
-        } else {
-          submitData.append(key, value);
-        }
-      });
+  if (!validateForm()) {
+    alert("Please fix the errors in the form before submitting.");
+    return;
+  }
 
-      const response = await axios.post(
-        `${API_BASE_URL}/students/admit`,
-        submitData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+  setLoading(true);
 
-      if (response.data.success) {
-        alert("Student admitted successfully!");
-        handleReset();
-      } else {
-        throw new Error(response.data.message || "Admission failed");
+  try {
+    const submitData = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null && value !== "" && value !== undefined) {
+        submitData.append(key, value);
       }
-    } catch (error) {
-      console.error("Admission error:", error);
-      alert(error.response?.data?.message || "Failed to admit student. Please try again.");
-    } finally {
-      setLoading(false);
+    });
+
+    const token = localStorage.getItem("token");
+
+    const response = await axios.post(
+      `${API_BASE_URL}/students`,
+      submitData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // ✅ Success: Only handle here, no throwing
+    if ((response.status === 200 || response.status === 201) && response.data) {
+      alert("Student admitted successfully!");
+      handleReset();
+    } else {
+      // Backend sent something weird
+      alert(response.data?.message || "Admission completed, but unexpected response.");
     }
-  };
+
+  } catch (error) {
+    // Only actual request errors land here
+    console.error("Admission error:", error);
+
+    if (error.response?.data?.message?.includes("studentId")) {
+      setErrors((prev) => ({ ...prev, studentId: "Student ID already exists" }));
+      alert("Student ID already exists. Please use a different ID.");
+    } else if (error.response?.data?.message?.includes("parentEmail")) {
+      setErrors((prev) => ({ ...prev, parentEmail: "Parent email already registered" }));
+      alert("Parent email already registered. Please use a different email.");
+    } else {
+      alert(error.response?.data?.message || "Failed to admit student. Please try again.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Form Reset
   const handleReset = () => {
     setFormData({
       firstName: "",
       lastName: "",
-      gender: [],
+      gender: "",
       dateOfBirth: "",
-      age: "",
-      religion: "",
-      nationality: "",
       studentId: "",
+      admissionYear: new Date().getFullYear().toString(),
+      admissionTerm: "",
       level: "",
-      course: "",
-      parentName: "",
-      parentContact: "",
-      email: "",
-      phone: "",
-      address: "",
+      className: "",
+      parentFirstName: "",
+      parentLastName: "",
+      parentEmail: "",
+      parentPhone: "",
       studentPhoto: null,
     });
     setPreviewImage(null);
@@ -225,35 +294,37 @@ const StudentAdmission = () => {
         : "border-gray-300"
     }`;
 
-  const checkboxClass = (isSelected) =>
-    `flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border cursor-pointer transition ${
+  const radioClass = (isSelected) =>
+    `flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border cursor-pointer transition ${
       isSelected
         ? "bg-[#052954] text-white border-[#052954]"
         : "hover:bg-[#052954]/5 border-gray-300"
     }`;
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-2";
-  const errorClass = "text-red-500 text-xs mt-1";
+  const errorClass = "text-red-500 text-xs mt-1 flex items-center gap-1";
+  const sectionHeaderClass = "flex items-center gap-3 text-lg md:text-xl font-semibold text-[#052954] border-b pb-2 md:pb-3";
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border p-6 md:p-8 max-w-6xl mx-auto">
+    <div className="bg-white rounded-2xl shadow-lg border p-4 md:p-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#052954] flex items-center gap-3">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-[#052954] flex items-center gap-3">
           <FaUser className="text-[#ffa301]" />
           Student Admission Form
         </h1>
+        <p className="text-gray-600 text-sm mt-2">Fill in all required fields marked with *</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-12">
+      <form onSubmit={handleSubmit} className="space-y-8 md:space-y-12">
         {/* Personal Information Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 text-xl font-semibold text-[#052954] border-b pb-3">
+        <div className="space-y-4 md:space-y-6">
+          <div className={sectionHeaderClass}>
             <FaUser className="text-[#ffa301]" />
-            <span>Personal Information</span>
+            <span>Student Information</span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {/* First Name */}
             <div>
               <label className={labelClass}>
@@ -266,8 +337,9 @@ const StudentAdmission = () => {
                 onChange={handleChange}
                 placeholder="Enter first name"
                 className={inputClass("firstName")}
+                maxLength={50}
               />
-              {errors.firstName && <p className={errorClass}>{errors.firstName}</p>}
+              {errors.firstName && <p className={errorClass}>⚠️ {errors.firstName}</p>}
             </div>
 
             {/* Last Name */}
@@ -282,43 +354,37 @@ const StudentAdmission = () => {
                 onChange={handleChange}
                 placeholder="Enter last name"
                 className={inputClass("lastName")}
+                maxLength={50}
               />
-              {errors.lastName && <p className={errorClass}>{errors.lastName}</p>}
+              {errors.lastName && <p className={errorClass}>⚠️ {errors.lastName}</p>}
             </div>
 
-            {/* Gender - Checkboxes */}
+            {/* Gender */}
             <div className="md:col-span-2">
-  <label className={labelClass}>
-    Gender <span className="text-red-500">*</span>
-  </label>
-
-  <div className="flex flex-col sm:flex-row gap-4 mt-2">
-    {genderOptions.map((option) => (
-      <label
-        key={option.value}
-        className="flex items-center gap-2 text-sm cursor-pointer"
-      >
-        <input
-          type="radio"
-          name="gender"
-          value={option.value}
-          checked={formData.gender === option.value}
-          onChange={() =>
-            setFormData({ ...formData, gender: option.value })
-          }
-          className="w-4 h-4 accent-[#052954]"
-        />
-        {option.icon}
-        <span>{option.label}</span>
-      </label>
-    ))}
-  </div>
-
-  {errors.gender && (
-    <p className={errorClass}>{errors.gender}</p>
-  )}
-</div>
-
+              <label className={labelClass}>
+                Gender <span className="text-red-500">*</span>
+              </label>
+              <div className="flex flex-col sm:flex-row gap-2 md:gap-4 mt-2">
+                {genderOptions.map((option) => (
+                  <label
+                    key={option.value}
+                    className={radioClass(formData.gender === option.value)}
+                  >
+                    <input
+                      type="radio"
+                      name="gender"
+                      value={option.value}
+                      checked={formData.gender === option.value}
+                      onChange={(e) => handleGenderChange(e.target.value)}
+                      className="hidden"
+                    />
+                    {option.icon}
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.gender && <p className={errorClass}>⚠️ {errors.gender}</p>}
+            </div>
 
             {/* Date of Birth */}
             <div>
@@ -326,91 +392,29 @@ const StudentAdmission = () => {
                 Date of Birth <span className="text-red-500">*</span>
               </label>
               <div className="relative">
+                <FaCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="date"
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleChange}
-                  className={inputClass("dateOfBirth")}
+                  className={`${inputClass("dateOfBirth")} pl-10`}
+                  max={new Date().toISOString().split('T')[0]}
                 />
               </div>
-              {errors.dateOfBirth && <p className={errorClass}>{errors.dateOfBirth}</p>}
-            </div>
-
-            {/* Age */}
-            <div>
-              <label className={labelClass}>
-                Age <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="age"
-                value={formData.age}
-                readOnly
-                placeholder="Auto-calculated"
-                className={`${inputClass("age")} bg-gray-50`}
-              />
-              {errors.age && <p className={errorClass}>{errors.age}</p>}
-            </div>
-
-            {/* Religion Dropdown */}
-            <div>
-              <label className={labelClass}>
-                Religion <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  name="religion"
-                  value={formData.religion}
-                  onChange={handleChange}
-                  className={selectClass("religion")}
-                >
-                  <option value="">Select Religion</option>
-                  {religionOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-              {errors.religion && <p className={errorClass}>{errors.religion}</p>}
-            </div>
-
-            {/* Nationality Dropdown */}
-            <div>
-              <label className={labelClass}>
-                Nationality <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  name="nationality"
-                  value={formData.nationality}
-                  onChange={handleChange}
-                  className={selectClass("nationality")}
-                >
-                  <option value="">Select Nationality</option>
-                  {nationalityOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <FaFlag className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-              </div>
-              {errors.nationality && <p className={errorClass}>{errors.nationality}</p>}
+              {errors.dateOfBirth && <p className={errorClass}>⚠️ {errors.dateOfBirth}</p>}
             </div>
           </div>
         </div>
 
         {/* Academic Information Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 text-xl font-semibold text-[#052954] border-b pb-3">
+        <div className="space-y-4 md:space-y-6">
+          <div className={sectionHeaderClass}>
             <FaBook className="text-[#ffa301]" />
             <span>Academic Information</span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {/* Student ID */}
             <div>
               <label className={labelClass}>
@@ -422,161 +426,207 @@ const StudentAdmission = () => {
                   name="studentId"
                   value={formData.studentId}
                   onChange={handleChange}
-                  placeholder="Enter student ID"
-                  className={inputClass("studentId")}
+                  placeholder="Auto-generated"
+                  className={`${inputClass("studentId")} bg-gray-50`}
+                  maxLength={20}
                 />
                 <FaIdCard className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
-              {errors.studentId && <p className={errorClass}>{errors.studentId}</p>}
+              {errors.studentId && <p className={errorClass}>⚠️ {errors.studentId}</p>}
             </div>
 
-            {/* Level */}
+            {/* Admission Year */}
+            <div>
+              <label className={labelClass}>
+                Admission Year <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  name="admissionYear"
+                  value={formData.admissionYear}
+                  onChange={handleChange}
+                  className={selectClass("admissionYear")}
+                >
+                  <option value="">Select Year</option>
+                  {admissionYearOptions.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+                <FaCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              {errors.admissionYear && <p className={errorClass}>⚠️ {errors.admissionYear}</p>}
+            </div>
+
+            {/* Admission Term */}
+            <div>
+              <label className={labelClass}>
+                Admission Term <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <select
+                  name="admissionTerm"
+                  value={formData.admissionTerm}
+                  onChange={handleChange}
+                  className={selectClass("admissionTerm")}
+                >
+                  <option value="">Select Term</option>
+                  {admissionTermOptions.map((term) => (
+                    <option key={term} value={term}>
+                      {term === "term1" ? "Term 1" : term === "term2" ? "Term 2" : "Term 3"}
+                    </option>
+                  ))}
+                </select>
+                <FaCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              {errors.admissionTerm && <p className={errorClass}>⚠️ {errors.admissionTerm}</p>}
+            </div>
+
+            {/* Level Dropdown */}
             <div>
               <label className={labelClass}>
                 Level <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                name="level"
-                value={formData.level}
-                onChange={handleChange}
-                placeholder="e.g., JHS 1, Grade 10"
-                className={inputClass("level")}
-              />
-              {errors.level && <p className={errorClass}>{errors.level}</p>}
+              <div className="relative">
+                <select
+                  name="level"
+                  value={formData.level}
+                  onChange={handleChange}
+                  className={selectClass("level")}
+                >
+                  <option value="">Select Level</option>
+                  {levelOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <FaSchool className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              {errors.level && <p className={errorClass}>⚠️ {errors.level}</p>}
             </div>
 
-            {/* Course */}
+            {/* Class Dropdown */}
             <div>
               <label className={labelClass}>
-                Course <span className="text-red-500">*</span>
+                Class <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                name="course"
-                value={formData.course}
-                onChange={handleChange}
-                placeholder="e.g., Science, Arts"
-                className={inputClass("course")}
-              />
-              {errors.course && <p className={errorClass}>{errors.course}</p>}
+              <div className="relative">
+                <select
+                  name="className"
+                  value={formData.className}
+                  onChange={handleChange}
+                  className={selectClass("className")}
+                  disabled={!formData.level}
+                >
+                  <option value="">Select Class</option>
+                  {availableClassOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                <FaBuilding className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              {errors.className && <p className={errorClass}>⚠️ {errors.className}</p>}
             </div>
           </div>
         </div>
 
         {/* Parent/Guardian Information Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 text-xl font-semibold text-[#052954] border-b pb-3">
+        <div className="space-y-4 md:space-y-6">
+          <div className={sectionHeaderClass}>
             <FaUserFriends className="text-[#ffa301]" />
             <span>Parent/Guardian Information</span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Parent Name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {/* Parent First Name */}
             <div>
               <label className={labelClass}>
-                Parent/Guardian Name <span className="text-red-500">*</span>
+                Parent First Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                name="parentName"
-                value={formData.parentName}
+                name="parentFirstName"
+                value={formData.parentFirstName}
                 onChange={handleChange}
-                placeholder="Enter full name"
-                className={inputClass("parentName")}
+                placeholder="Enter parent first name"
+                className={inputClass("parentFirstName")}
+                maxLength={50}
               />
-              {errors.parentName && <p className={errorClass}>{errors.parentName}</p>}
+              {errors.parentFirstName && <p className={errorClass}>⚠️ {errors.parentFirstName}</p>}
             </div>
 
-            {/* Parent Contact */}
+            {/* Parent Last Name */}
             <div>
               <label className={labelClass}>
-                Parent Contact <span className="text-red-500">*</span>
+                Parent Last Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="parentLastName"
+                value={formData.parentLastName}
+                onChange={handleChange}
+                placeholder="Enter parent last name"
+                className={inputClass("parentLastName")}
+                maxLength={50}
+              />
+              {errors.parentLastName && <p className={errorClass}>⚠️ {errors.parentLastName}</p>}
+            </div>
+
+            {/* Parent Email */}
+            <div>
+              <label className={labelClass}>
+                Parent Email <span className="text-red-500">*</span>
               </label>
               <div className="relative">
+                <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
-                  type="text"
-                  name="parentContact"
-                  value={formData.parentContact}
+                  type="email"
+                  name="parentEmail"
+                  value={formData.parentEmail}
                   onChange={handleChange}
-                  placeholder="Enter phone number"
-                  className={inputClass("parentContact")}
+                  placeholder="parent@example.com"
+                  className={`${inputClass("parentEmail")} pl-10`}
+                  maxLength={100}
                 />
-                <FaPhone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
-              {errors.parentContact && <p className={errorClass}>{errors.parentContact}</p>}
+              {errors.parentEmail && <p className={errorClass}>⚠️ {errors.parentEmail}</p>}
             </div>
-          </div>
-        </div>
 
-        {/* Contact Information Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 text-xl font-semibold text-[#052954] border-b pb-3">
-            <FaEnvelope className="text-[#ffa301]" />
-            <span>Contact Information</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Email */}
+            {/* Parent Phone */}
             <div>
               <label className={labelClass}>
-                Email Address <span className="text-red-500">*</span>
+                Parent Phone <span className="text-red-500">*</span>
               </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter email address"
-                className={inputClass("email")}
-              />
-              {errors.email && <p className={errorClass}>{errors.email}</p>}
-            </div>
-
-            {/* Phone */}
-            <div>
-              <label className={labelClass}>
-                Phone Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="Enter phone number"
-                className={inputClass("phone")}
-              />
-              {errors.phone && <p className={errorClass}>{errors.phone}</p>}
-            </div>
-
-            {/* Address */}
-            <div className="md:col-span-2">
-              <label className={labelClass}>
-                Address <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Enter complete address"
-                rows="3"
-                className={inputClass("address")}
-              />
-              {errors.address && <p className={errorClass}>{errors.address}</p>}
+              <div className="relative">
+                <FaPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="tel"
+                  name="parentPhone"
+                  value={formData.parentPhone}
+                  onChange={handleChange}
+                  placeholder="0241234567"
+                  className={`${inputClass("parentPhone")} pl-10`}
+                />
+              </div>
+              {errors.parentPhone && <p className={errorClass}>⚠️ {errors.parentPhone}</p>}
             </div>
           </div>
         </div>
 
         {/* Student Photo Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 text-xl font-semibold text-[#052954] border-b pb-3">
+        <div className="space-y-4 md:space-y-6">
+          <div className={sectionHeaderClass}>
             <FaImage className="text-[#ffa301]" />
             <span>Student Photo</span>
           </div>
           
-          <div className="flex flex-col md:flex-row items-center gap-8">
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
             {/* Photo Preview */}
-            <div className="w-48 h-48 rounded-2xl border-2 border-dashed border-gray-300 overflow-hidden bg-gray-50 flex items-center justify-center">
+            <div className="w-40 h-40 md:w-48 md:h-48 rounded-2xl border-2 border-dashed border-gray-300 overflow-hidden bg-gray-50 flex items-center justify-center">
               {previewImage ? (
                 <img
                   src={previewImage}
@@ -585,19 +635,19 @@ const StudentAdmission = () => {
                 />
               ) : (
                 <div className="text-center p-4">
-                  <FaUser className="text-6xl text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 text-sm">No photo selected</p>
+                  <FaUser className="text-5xl md:text-6xl text-gray-400 mx-auto mb-2 md:mb-4" />
+                  <p className="text-gray-500 text-xs md:text-sm">No photo selected</p>
                 </div>
               )}
             </div>
 
             {/* Upload Controls */}
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 space-y-3 md:space-y-4">
               <div>
                 <label className={labelClass}>
                   Upload Photo <span className="text-red-500">*</span>
                 </label>
-                <label className="inline-flex items-center gap-2 px-6 py-3 bg-[#052954] text-white rounded-xl cursor-pointer hover:bg-[#052954]/90 transition">
+                <label className="inline-flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-[#052954] text-white rounded-xl cursor-pointer hover:bg-[#052954]/90 transition text-sm md:text-base">
                   <FaImage />
                   Choose File
                   <input
@@ -614,16 +664,17 @@ const StudentAdmission = () => {
                   </p>
                 )}
                 {errors.studentPhoto && (
-                  <p className={errorClass}>{errors.studentPhoto}</p>
+                  <p className={errorClass}>⚠️ {errors.studentPhoto}</p>
                 )}
               </div>
               
-              <div className="text-sm text-gray-600">
+              <div className="text-xs md:text-sm text-gray-600">
                 <p className="font-medium mb-1">Requirements:</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>File formats: JPG, PNG, GIF</li>
                   <li>Maximum size: 5MB</li>
                   <li>Recommended: Square photo, clear face visible</li>
+                  <li>Passport-size recommended</li>
                 </ul>
               </div>
             </div>
@@ -631,13 +682,13 @@ const StudentAdmission = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 pt-8 border-t">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-6 md:pt-8 border-t">
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 bg-gradient-to-r from-[#ffa301] to-[#ffb745] text-[#052954] font-semibold py-4 rounded-xl flex items-center justify-center gap-3 hover:opacity-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-gradient-to-r from-[#ffa301] to-[#ffb745] text-[#052954] font-semibold py-3 md:py-4 rounded-xl flex items-center justify-center gap-2 md:gap-3 hover:opacity-95 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
           >
-            <FaSave className="text-lg" />
+            <FaSave className="text-base md:text-lg" />
             {loading ? "Processing Admission..." : "Complete Admission"}
           </button>
           
@@ -645,9 +696,9 @@ const StudentAdmission = () => {
             type="button"
             onClick={handleReset}
             disabled={loading}
-            className="flex-1 border-2 border-[#052954] text-[#052954] font-semibold py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-[#052954]/5 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 border-2 border-[#052954] text-[#052954] font-semibold py-3 md:py-4 rounded-xl flex items-center justify-center gap-2 md:gap-3 hover:bg-[#052954]/5 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
           >
-            <FaRedo className="text-lg" />
+            <FaRedo className="text-base md:text-lg" />
             Clear Form
           </button>
         </div>

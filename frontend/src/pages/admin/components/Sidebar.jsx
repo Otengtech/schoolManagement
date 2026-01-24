@@ -81,7 +81,6 @@ const Sidebar = ({ setActivePage }) => {
       icon: <FaUserFriends />,
       hasDropdown: true,
       submenu: [
-        { label: "Parent Form", icon: <FaUserPlus />, action: () => setActivePage("parent-form") },
         { label: "View Parents", icon: <FaList />, action: () => setActivePage("parents") },
       ],
     },

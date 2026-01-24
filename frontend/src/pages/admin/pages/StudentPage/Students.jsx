@@ -44,7 +44,7 @@ const Students = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      console.log("API Response:", res.data); // Debug log
+      console.log("API Response:", res.data);
 
       const clean = (res.data.data || []).map(s => ({
         _id: s._id,
@@ -67,7 +67,6 @@ const Students = () => {
         __v: s.__v || 0
       }));
 
-      console.log("Cleaned Students:", clean); // Debug log
       setStudents(clean);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -90,7 +89,7 @@ const Students = () => {
     setSortConfig({ key, direction });
   };
 
-// ================= FILTER STUDENTS =================
+  // ================= FILTER STUDENTS =================
   const filteredStudents = useMemo(() => {
     let r = [...students];
 
@@ -121,7 +120,6 @@ const Students = () => {
       let aVal = a[sortConfig.key];
       let bVal = b[sortConfig.key];
       
-      // Handle nested parent objects
       if (sortConfig.key.includes('.')) {
         const keys = sortConfig.key.split('.');
         aVal = keys.reduce((obj, key) => obj?.[key], a);
@@ -141,59 +139,138 @@ const Students = () => {
     });
   }, [filteredStudents, sortConfig]);
 
-  // ================= UPDATE STUDENT =================
+  // ================= IMPROVED EDIT CHANGE HANDLER =================
+  const handleEditChange = (e) => {
+    const { name, value, type, files } = e.target;
+    
+    console.log(`Edit change: ${name} = ${value}, type = ${type}`);
+    
+    if (type === 'file' && files && files[0]) {
+      const file = files[0];
+      console.log("File selected:", file.name, file.size, file.type);
+      
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        toast.error("Please select an image file (JPG, PNG, GIF)");
+        return;
+      }
+      
+      setEditForm(prev => ({ ...prev, studentPhoto: file }));
+      setPhotoPreview(URL.createObjectURL(file));
+      return;
+    }
+    
+    if (name === "level") {
+      setEditForm(prev => ({ 
+        ...prev, 
+        [name]: value,
+        className: "" 
+      }));
+    } else if (name === "isActive") {
+      setEditForm(prev => ({ ...prev, [name]: value === "true" || value === true }));
+    } else if (name === "age") {
+      const ageNum = parseInt(value) || 0;
+      setEditForm(prev => ({ ...prev, [name]: ageNum }));
+    } else if (name === "dateOfBirth") {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        setEditForm(prev => ({ ...prev, [name]: date.toISOString().split('T')[0] }));
+      } else {
+        setEditForm(prev => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setEditForm(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  // ================= FIXED UPDATE STUDENT =================
   const handleUpdate = async (e) => {
     e.preventDefault();
     setUploadingPhoto(true);
 
     try {
       const token = localStorage.getItem("token");
-      const fd = new FormData();
-
-      // Student fields
-      fd.append("firstName", editForm.firstName);
-      fd.append("lastName", editForm.lastName);
-      fd.append("gender", editForm.gender);
-      fd.append("dateOfBirth", editForm.dateOfBirth);
-      fd.append("age", Number(editForm.age));
-      fd.append("studentId", editForm.studentId);
-      fd.append("admissionYear", editForm.admissionYear);
-      fd.append("admissionTerm", editForm.admissionTerm);
-      fd.append("level", editForm.level);
-      fd.append("className", editForm.className);
-      fd.append("isActive", editForm.isActive === true || editForm.isActive === "true");
-
-      // Parent object fields
-      fd.append("parent[firstName]", editForm.parentFirstName || "");
-      fd.append("parent[lastName]", editForm.parentLastName || "");
-      fd.append("parent[email]", editForm.parentEmail || "");
-      fd.append("parent[phone]", editForm.parentPhone || "");
-
-      // Photo upload
-      if (editForm.studentPhoto instanceof File) {
-        fd.append("studentPhoto", editForm.studentPhoto);
-      } else if (editForm.studentPhoto && typeof editForm.studentPhoto === 'string') {
-        fd.append("studentPhoto", editForm.studentPhoto);
-      }
-
-      console.log("Update payload:", Object.fromEntries(fd)); // Debug log
-
-      const response = await api.put(`/students/${selectedStudent._id}`, fd, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data"
+      
+      // Create FormData for potential file upload
+      const formData = new FormData();
+      
+      // Append student fields
+      const studentData = {
+        firstName: editForm.firstName,
+        lastName: editForm.lastName,
+        gender: editForm.gender,
+        dateOfBirth: editForm.dateOfBirth,
+        age: Number(editForm.age),
+        studentId: editForm.studentId,
+        admissionYear: editForm.admissionYear,
+        admissionTerm: editForm.admissionTerm,
+        level: editForm.level,
+        className: editForm.className,
+        isActive: editForm.isActive,
+        parent: {
+          firstName: editForm.parentFirstName || "",
+          lastName: editForm.parentLastName || "",
+          email: editForm.parentEmail || "",
+          phone: editForm.parentPhone || ""
         }
-      });
-
-      console.log("Update response:", response.data); // Debug log
+      };
+      
+      // If there's a new photo file
+      if (editForm.studentPhoto instanceof File) {
+        formData.append("studentPhoto", editForm.studentPhoto);
+        formData.append("data", JSON.stringify(studentData));
+        
+        // Send as multipart/form-data
+        const response = await api.put(`/students/${selectedStudent._id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        });
+        
+        console.log("Update with photo response:", response.data);
+      } else {
+        // Send as JSON without photo
+        const response = await api.put(`/students/${selectedStudent._id}`, studentData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        console.log("Update response:", response.data);
+      }
+      
       toast.success("Student updated successfully");
       setModalState({ ...modalState, edit: false });
       setPhotoPreview(null);
       fetchStudents();
 
     } catch (err) {
-      console.error("Update error:", err.response?.data || err);
-      toast.error(err.response?.data?.message || err.response?.data?.error || "Update failed");
+      console.error("Update error:", {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        message: err.message
+      });
+      
+      const errorMsg = err.response?.data?.message || 
+                      err.response?.data?.error || 
+                      err.message || 
+                      "Update failed. Please check your data.";
+      
+      toast.error(`❌ ${errorMsg}`);
+      
+      if (err.response?.data?.errors) {
+        console.log("Validation errors:", err.response.data.errors);
+        Object.values(err.response.data.errors).forEach(error => {
+          toast.error(`Validation: ${error}`);
+        });
+      }
     } finally {
       setUploadingPhoto(false);
     }
@@ -215,36 +292,27 @@ const Students = () => {
   };
 
   // ================= HANDLERS =================
-  const handleEditChange = (e) => {
-    const { name, value, type, files } = e.target;
-    
-    if (type === 'file' && files && files[0]) {
-      const file = files[0];
-      setEditForm(prev => ({ ...prev, studentPhoto: file }));
-      setPhotoPreview(URL.createObjectURL(file));
-      return;
-    }
-    
-    if (name === "level") {
-      setEditForm(prev => ({ 
-        ...prev, 
-        [name]: value,
-        className: "" 
-      }));
-    } else if (name === "isActive") {
-      setEditForm(prev => ({ ...prev, [name]: value === "true" }));
-    } else {
-      setEditForm(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
   const openEditModal = (student) => {
+    console.log("Opening edit modal for:", student);
     setSelectedStudent(student);
+    
+    let formattedDate = "";
+    if (student.dateOfBirth) {
+      try {
+        const date = new Date(student.dateOfBirth);
+        if (!isNaN(date.getTime())) {
+          formattedDate = date.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.error("Date formatting error:", e);
+      }
+    }
+    
     setEditForm({
       firstName: student.firstName || "",
       lastName: student.lastName || "",
       gender: student.gender || "",
-      dateOfBirth: student.dateOfBirth?.split("T")[0] || "",
+      dateOfBirth: formattedDate,
       age: student.age || "",
       studentId: student.studentId || "",
       admissionYear: student.admissionYear || "",
@@ -256,8 +324,9 @@ const Students = () => {
       parentEmail: student.parent?.email || "",
       parentPhone: student.parent?.phone || "",
       studentPhoto: student.studentPhoto || null,
-      isActive: student.isActive ?? true
+      isActive: student.isActive !== undefined ? student.isActive : true
     });
+    
     setPhotoPreview(student.studentPhoto || null);
     setModalState({ ...modalState, edit: true });
   };

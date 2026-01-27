@@ -270,16 +270,16 @@ const AnnouncementForm = () => {
 
   /* ---------------- STYLES ---------------- */
   const smallInput =
-    "w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#052954]/30 focus:border-[#052954] outline-none transition";
+    "w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#052954]/30 focus:border-[#052954] outline-none transition";
 
   const largeTextarea =
-    "w-full px-4 py-4 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#052954]/30 focus:border-[#052954] outline-none transition resize-none";
+    "w-full px-4 py-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#052954]/30 focus:border-[#052954] outline-none transition resize-none";
 
   const errorInput =
-    "w-full px-4 py-3 rounded-xl border-2 border-red-500 text-sm focus:ring-2 focus:ring-red-300 focus:border-red-500 outline-none transition";
+    "w-full px-4 py-3 rounded-xl border-2 border-red-500 focus:ring-2 focus:ring-red-300 focus:border-red-500 outline-none transition";
 
   const errorTextarea =
-    "w-full px-4 py-4 rounded-xl border-2 border-red-500 text-sm focus:ring-2 focus:ring-red-300 focus:border-red-500 outline-none transition resize-none";
+    "w-full px-4 py-4 rounded-xl border-2 border-red-500 focus:ring-2 focus:ring-red-300 focus:border-red-500 outline-none transition resize-none";
 
   // Check if user is logged in
   const isLoggedIn = !!token;

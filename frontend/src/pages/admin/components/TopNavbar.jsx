@@ -740,13 +740,13 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
       </nav>
 
       {/* Mobile Sidebar Toggle Button */}
-      <button
+      {/* <button
         onClick={toggleSidebar}
         className="fixed top-3 left-3 z-40 lg:hidden bg-[#052954] text-white p-2 rounded-lg shadow-lg"
         aria-label="Toggle sidebar"
       >
         {isSidebarOpen ? "✕" : "☰"}
-      </button>
+      </button> */}
 
       <style>{`
         .line-clamp-2 {

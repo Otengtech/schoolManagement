@@ -15,6 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../../context/AuthContext";
+import schoolLogo from "../../../assets/school-logo.png";
 
 const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
   // State
@@ -406,22 +407,8 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
   const renderMessagesDropdown = () => (
     <div
       className="
-      absolute 
-      right-0 
-      md:right-0 
-      left-1/2 
-      md:left-auto 
-      -translate-x-1/2 
-      md:translate-x-0
-      mt-3
-      w-[90vw] 
-      sm:w-80 
-      max-w-sm
-      bg-gradient-to-br from-[#052954] to-[#041e42]
-      shadow-xl 
-      rounded-lg 
-      border border-white/10
-      z-50
+          absolute -right-14 mt-2 w-72 bg-gradient-to-br from-[#052954] to-[#041e42] shadow-xl rounded-lg border border-white/10 z-50
+
     "
     >
       <div className="p-3 border-b border-white/10">
@@ -455,29 +442,7 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
   const renderNotificationsDropdown = () => (
     <div
   className="
-    absolute
-    top-full
-    mt-3
-
-    left-1/2
-    -translate-x-1/2
-
-    md:left-auto
-    md:right-0
-    md:translate-x-0
-
-    w-[95vw]
-    sm:w-80
-    max-w-sm
-
-    max-h-[80vh]
-    overflow-y-auto
-
-    bg-gradient-to-br from-[#052954] to-[#041e42]
-    shadow-xl
-    rounded-lg
-    border border-white/10
-    z-50
+    absolute -right-10 mt-2 w-72 bg-gradient-to-br from-[#052954] to-[#041e42] shadow-xl rounded-lg border border-white/10 z-50
   "
 >
 
@@ -490,14 +455,6 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
           </p>
           <p className="text-xs text-gray-400 mt-1">Latest school updates</p>
         </div>
-        {notificationCount > 0 && (
-          <button
-            onClick={markAllAsWatched}
-            className="text-xs bg-[#ffa301] text-[#052954] px-3 py-1 rounded-full hover:bg-[#ffa301]/90 transition"
-          >
-            Mark all read
-          </button>
-        )}
       </div>
 
       {/* Announcements List */}
@@ -513,17 +470,11 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
               {/* Announcement Header */}
               <div className="flex items-start gap-3 mb-2">
                 <div className="flex-shrink-0">
-                  {announcement.image ? (
                     <img
-                      src={announcement.image}
-                      alt={announcement.title}
+                      src={schoolLogo}
+                      alt={schoolLogo}
                       className="w-10 h-10 object-cover rounded-full"
                     />
-                  ) : (
-                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                      <FaBullhorn className="text-[#ffa301] text-lg" />
-                    </div>
-                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
@@ -555,8 +506,8 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
               </p>
 
               {/* Recipients */}
-              <div className="mb-3">
-                <p className="text-xs text-gray-400 mb-1">To:</p>
+              <div className="mb-3 flex items-center gap-2">
+                <p className="text-xs text-gray-400">To:</p>
                 <div className="flex flex-wrap gap-1">
                   {announcement.recipients?.roles?.map((role, index) => (
                     <span
@@ -574,25 +525,7 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
               </div>
 
               {/* Footer Actions */}
-              <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                <div className="flex items-center gap-2">
-                  {announcement.channels?.email && (
-                    <span className="text-xs text-blue-400">📧</span>
-                  )}
-                  {announcement.channels?.sms && (
-                    <span className="text-xs text-green-400">💬</span>
-                  )}
-                  {announcement.channels?.inApp && (
-                    <span className="text-xs text-purple-400">📱</span>
-                  )}
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    announcement.deliveryStatus === 'sent' 
-                      ? 'bg-green-500/20 text-green-400'
-                      : 'bg-yellow-500/20 text-yellow-400'
-                  }`}>
-                    {announcement.deliveryStatus}
-                  </span>
-                </div>
+              <div className="flex justify-between items-center">
                 <div className="flex gap-2">
                   {!announcement.watched && (
                     <button
@@ -602,15 +535,6 @@ const TopNavbar = ({ setActivePage, toggleSidebar, isSidebarOpen }) => {
                       <FaEye /> Mark read
                     </button>
                   )}
-                  <button
-                    onClick={() => {
-                      setActivePage("announcements");
-                      setShowNotifications(false);
-                    }}
-                    className="text-xs text-[#ffa301] hover:text-[#ffa301]/80 transition"
-                  >
-                    View all
-                  </button>
                 </div>
               </div>
             </div>

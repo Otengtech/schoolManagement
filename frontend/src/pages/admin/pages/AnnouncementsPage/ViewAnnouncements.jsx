@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { 
-  FaBullhorn, 
-  FaCalendarAlt, 
+import {
+  FaBullhorn,
+  FaCalendarAlt,
   FaSync,
   FaExclamationTriangle,
   FaEnvelope,
@@ -13,7 +13,7 @@ import {
   FaUserTie,
   FaTrash,
   FaUsers,
-  FaRegCopy
+  FaRegCopy,
 } from "react-icons/fa";
 import schoolLogo from "../../../../assets/school-logo.png";
 
@@ -30,7 +30,7 @@ const Announcements = () => {
     role: "",
     channel: "",
     important: false,
-    date: ""
+    date: "",
   });
 
   useEffect(() => {
@@ -42,15 +42,17 @@ const Announcements = () => {
     try {
       setError(null);
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
         setError("Please login to view announcements");
         setLoading(false);
         return;
       }
 
-      const API_BASE_URL = import.meta.env.VITE_API_URI || "https://school-management-system-backend-three.vercel.app";
-      
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URI ||
+        "https://school-management-system-backend-three.vercel.app";
+
       const response = await fetch(`${API_BASE_URL}/get-announce`, {
         method: "GET",
         headers: {
@@ -65,22 +67,31 @@ const Announcements = () => {
 
       const data = await response.json();
       console.log("Announcements data:", data);
-      
-      const transformedAnnouncements = data.data ? data.data.map((announcement) => ({
-        id: announcement._id,
-        title: announcement.title,
-        description: announcement.description,
-        date: announcement.date,
-        author: announcement.author,
-        createdAt: announcement.createdAt,
-        updatedAt: announcement.updatedAt,
-        deliveryStatus: announcement.deliveryStatus || "sent",
-        image: announcement.image || schoolLogo,
-        recipients: announcement.recipients || { roles: [], specificUsers: [] },
-        channels: announcement.channels || { email: true, sms: false, inApp: true },
-        important: false // Add if you have important field in API
-      })) : [];
-      
+
+      const transformedAnnouncements = data.data
+        ? data.data.map((announcement) => ({
+            id: announcement._id,
+            title: announcement.title,
+            description: announcement.description,
+            date: announcement.date,
+            author: announcement.author,
+            createdAt: announcement.createdAt,
+            updatedAt: announcement.updatedAt,
+            deliveryStatus: announcement.deliveryStatus || "sent",
+            image: announcement.image || schoolLogo,
+            recipients: announcement.recipients || {
+              roles: [],
+              specificUsers: [],
+            },
+            channels: announcement.channels || {
+              email: true,
+              sms: false,
+              inApp: true,
+            },
+            important: false, // Add if you have important field in API
+          }))
+        : [];
+
       setAnnouncements(transformedAnnouncements);
       setFilteredAnnouncements(transformedAnnouncements);
     } catch (err) {
@@ -98,35 +109,33 @@ const Announcements = () => {
 
   useEffect(() => {
     let result = [...announcements];
-    
+
     // Filter by role
     if (filters.role) {
-      result = result.filter(a => 
-        a.recipients?.roles?.includes(filters.role)
+      result = result.filter((a) =>
+        a.recipients?.roles?.includes(filters.role),
       );
     }
-    
+
     // Filter by channel
     if (filters.channel) {
-      result = result.filter(a => 
-        a.channels?.[filters.channel]
-      );
+      result = result.filter((a) => a.channels?.[filters.channel]);
     }
-    
+
     // Filter by important
     if (filters.important) {
-      result = result.filter(a => a.important);
+      result = result.filter((a) => a.important);
     }
-    
+
     // Filter by date
     if (filters.date) {
       const filterDate = new Date(filters.date);
-      result = result.filter(a => {
+      result = result.filter((a) => {
         const announcementDate = new Date(a.date);
         return announcementDate.toDateString() === filterDate.toDateString();
       });
     }
-    
+
     setFilteredAnnouncements(result);
   }, [filters, announcements]);
 
@@ -143,23 +152,27 @@ const Announcements = () => {
     setDeletingId(announcementId);
     try {
       const token = localStorage.getItem("token");
-      const API_BASE_URL = import.meta.env.VITE_API_URI || "https://school-management-system-backend-three.vercel.app";
-      
-      const response = await fetch(`${API_BASE_URL}/del-announce/${announcementId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const API_BASE_URL =
+        import.meta.env.VITE_API_URI ||
+        "https://school-management-system-backend-three.vercel.app";
+
+      const response = await fetch(
+        `${API_BASE_URL}/del-announce/${announcementId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to delete announcement: ${response.status}`);
       }
 
-      setAnnouncements(prev => prev.filter(a => a.id !== announcementId));
+      setAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
       alert("Announcement deleted successfully!");
-      
     } catch (err) {
       console.error("Error deleting announcement:", err);
       alert(err.message || "Failed to delete announcement");
@@ -174,7 +187,7 @@ const Announcements = () => {
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) {
       return "Today";
     } else if (diffDays === 1) {
@@ -182,39 +195,54 @@ const Announcements = () => {
     } else if (diffDays < 7) {
       return `${diffDays} days ago`;
     } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
       });
     }
   };
 
   const getRecipientLabel = (recipients) => {
     if (!recipients || !recipients.roles) return "Everyone";
-    
+
     const roleLabels = {
       parent: "Parents",
       teacher: "Teachers",
       student: "Students",
       admin: "Admins",
-      all: "Everyone"
+      all: "Everyone",
     };
-    
+
     if (recipients.roles.includes("all")) return "Everyone";
-    
-    return recipients.roles
-      .map(role => roleLabels[role] || role)
-      .join(", ");
+
+    return recipients.roles.map((role) => roleLabels[role] || role).join(", ");
   };
 
   const getChannelIcons = (channels) => {
     if (!channels) return [];
-    
+
     const icons = [];
-    if (channels.email) icons.push(<FaEnvelope key="email" className="text-gray-500 text-xs" title="Email" />);
-    if (channels.sms) icons.push(<FaSms key="sms" className="text-gray-500 text-xs" title="SMS" />);
-    if (channels.inApp) icons.push(<FaMobileAlt key="inApp" className="text-gray-500 text-xs" title="In-App" />);
-    
+    if (channels.email)
+      icons.push(
+        <FaEnvelope
+          key="email"
+          className="text-gray-500 text-xs"
+          title="Email"
+        />,
+      );
+    if (channels.sms)
+      icons.push(
+        <FaSms key="sms" className="text-gray-500 text-xs" title="SMS" />,
+      );
+    if (channels.inApp)
+      icons.push(
+        <FaMobileAlt
+          key="inApp"
+          className="text-gray-500 text-xs"
+          title="In-App"
+        />,
+      );
+
     return icons;
   };
 
@@ -223,7 +251,7 @@ const Announcements = () => {
       role: "",
       channel: "",
       important: false,
-      date: ""
+      date: "",
     });
   };
 
@@ -234,8 +262,11 @@ const Announcements = () => {
     if (!announcement) return null;
 
     return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div 
+      <div
+        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        onClick={onClose}
+      >
+        <div
           className="relative bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
@@ -244,22 +275,29 @@ const Announcements = () => {
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center justify-start gap-4 mb-2">
-                <img src={schoolLogo} alt="school logo" className="w-10 h-10 rounded-full" />
-                <h2 className="text-xl font-bold text-gray-800">{announcement.title}</h2>
+                  <img
+                    src={schoolLogo}
+                    alt="school logo"
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <h2 className="text-xl font-bold text-gray-800">
+                    {announcement.title}
+                  </h2>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <span className="flex items-center gap-1">
                     <FaUserTie className="text-xs" />
-                    {announcement.author?.firstName} {announcement.author?.lastName}
+                    {announcement.author?.firstName}{" "}
+                    {announcement.author?.lastName}
                   </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
                     <FaCalendarAlt className="text-xs" />
-                    {new Date(announcement.date).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
+                    {new Date(announcement.date).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
                     })}
                   </span>
                 </div>
@@ -284,7 +322,9 @@ const Announcements = () => {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500 mb-1">Recipients</p>
-                  <p className="font-medium">{getRecipientLabel(announcement.recipients)}</p>
+                  <p className="font-medium">
+                    {getRecipientLabel(announcement.recipients)}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Channels</p>
@@ -294,7 +334,9 @@ const Announcements = () => {
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Delivery Status</p>
-                  <span className={`px-2 py-1 rounded-full text-xs ${announcement.deliveryStatus === 'sent' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${announcement.deliveryStatus === "sent" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
+                  >
                     {announcement.deliveryStatus}
                   </span>
                 </div>
@@ -314,7 +356,7 @@ const Announcements = () => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(announcement.description);
-                  alert('Copied to clipboard');
+                  alert("Copied to clipboard");
                 }}
                 className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800"
               >
@@ -322,17 +364,17 @@ const Announcements = () => {
               </button>
               <div className="flex gap-3">
                 {/* {canDelete() && ( */}
-                  <button
-                    onClick={() => {
-                      if (window.confirm("Delete this announcement?")) {
-                        handleDeleteAnnouncement(announcement.id);
-                        onClose();
-                      }
-                    }}
-                    className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
-                  >
-                    Delete
-                  </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm("Delete this announcement?")) {
+                      handleDeleteAnnouncement(announcement.id);
+                      onClose();
+                    }
+                  }}
+                  className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm"
+                >
+                  Delete
+                </button>
                 {/* )} */}
                 <button
                   onClick={onClose}
@@ -359,7 +401,9 @@ const Announcements = () => {
                 <FaBullhorn size={20} />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Announcements</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Announcements
+                </h1>
                 <p className="text-gray-600">Latest updates and notices</p>
               </div>
             </div>
@@ -370,7 +414,7 @@ const Announcements = () => {
                 className="p-2 hover:bg-gray-200 rounded-lg transition"
                 title="Refresh"
               >
-                <FaSync className={`${refreshing ? 'animate-spin' : ''}`} />
+                <FaSync className={`${refreshing ? "animate-spin" : ""}`} />
               </button>
               {canDelete() && (
                 <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
@@ -386,7 +430,10 @@ const Announcements = () => {
               <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                 <FaFilter /> Filters
               </div>
-              {(filters.role || filters.channel || filters.important || filters.date) && (
+              {(filters.role ||
+                filters.channel ||
+                filters.important ||
+                filters.date) && (
                 <button
                   onClick={clearFilters}
                   className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
@@ -399,7 +446,9 @@ const Announcements = () => {
               {/* Role Filter */}
               <select
                 value={filters.role}
-                onChange={(e) => setFilters({...filters, role: e.target.value})}
+                onChange={(e) =>
+                  setFilters({ ...filters, role: e.target.value })
+                }
                 className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-gray-500"
               >
                 <option value="">All Recipients</option>
@@ -413,7 +462,9 @@ const Announcements = () => {
               {/* Channel Filter */}
               <select
                 value={filters.channel}
-                onChange={(e) => setFilters({...filters, channel: e.target.value})}
+                onChange={(e) =>
+                  setFilters({ ...filters, channel: e.target.value })
+                }
                 className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-gray-500"
               >
                 <option value="">All Channels</option>
@@ -426,7 +477,9 @@ const Announcements = () => {
               <input
                 type="date"
                 value={filters.date}
-                onChange={(e) => setFilters({...filters, date: e.target.value})}
+                onChange={(e) =>
+                  setFilters({ ...filters, date: e.target.value })
+                }
                 className="text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-gray-500"
               />
             </div>
@@ -459,8 +512,11 @@ const Announcements = () => {
                     No announcements found
                   </h3>
                   <p className="text-gray-500 max-w-sm mx-auto">
-                    {filters.role || filters.channel || filters.important || filters.date 
-                      ? "Try changing your filters" 
+                    {filters.role ||
+                    filters.channel ||
+                    filters.important ||
+                    filters.date
+                      ? "Try changing your filters"
                       : "Check back later for updates"}
                   </p>
                 </div>
@@ -476,9 +532,16 @@ const Announcements = () => {
                         <div className="flex-1 min-w-0">
                           {/* Title and Info */}
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-gray-700">
-                              {announcement.title}
-                            </h3>
+                            <div className="flex items-center justify-start gap-4 mb-2">
+                              <img
+                                src={schoolLogo}
+                                alt="school logo"
+                                className="w-10 h-10 rounded-full"
+                              />
+                              <h2 className="text-xl font-bold text-gray-800">
+                                {announcement.title}
+                              </h2>
+                            </div>
                             {canDelete() && (
                               <button
                                 onClick={(e) => {
@@ -507,7 +570,8 @@ const Announcements = () => {
                           <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                             <span className="flex items-center gap-1">
                               <FaUserTie />
-                              {announcement.author?.firstName} {announcement.author?.lastName}
+                              {announcement.author?.firstName}{" "}
+                              {announcement.author?.lastName}
                             </span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
@@ -524,7 +588,8 @@ const Announcements = () => {
                               {getChannelIcons(announcement.channels)}
                             </span>
                             <span className="ml-auto flex items-center gap-1 text-gray-400 group-hover:text-gray-600">
-                              View details <FaChevronRight className="text-xs" />
+                              View details{" "}
+                              <FaChevronRight className="text-xs" />
                             </span>
                           </div>
                         </div>
@@ -538,11 +603,13 @@ const Announcements = () => {
             {/* Stats */}
             <div className="mt-8">
               <div className="text-sm text-gray-600">
-                Showing {filteredAnnouncements.length} of {announcements.length} announcements
-                {(filters.role || filters.channel || filters.important || filters.date) && (
-                  <span className="text-gray-500">
-                    {' '}(filtered)
-                  </span>
+                Showing {filteredAnnouncements.length} of {announcements.length}{" "}
+                announcements
+                {(filters.role ||
+                  filters.channel ||
+                  filters.important ||
+                  filters.date) && (
+                  <span className="text-gray-500"> (filtered)</span>
                 )}
               </div>
             </div>
@@ -551,8 +618,8 @@ const Announcements = () => {
       </div>
 
       {/* Announcement Detail Modal */}
-      <AnnouncementDetail 
-        announcement={selectedAnnouncement} 
+      <AnnouncementDetail
+        announcement={selectedAnnouncement}
         onClose={() => setSelectedAnnouncement(null)}
       />
 
